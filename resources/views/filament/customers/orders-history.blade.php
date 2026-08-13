@@ -163,6 +163,15 @@
                                                         @endforelse
                                                     </tbody>
                                                 </table>
+
+                                                <div class="flex items-center justify-end gap-6 border-t border-gray-200 bg-gray-50 px-6 py-4 text-sm dark:border-white/10 dark:bg-white/5">
+                                                    <span class="font-medium text-gray-600 dark:text-gray-400">
+                                                        Chiết khấu
+                                                    </span>
+                                                    <span class="font-semibold text-gray-950 dark:text-white">
+                                                        {{ number_format((float) ($order->discount ?? 0), 0, ',', '.') }} ₫
+                                                    </span>
+                                                </div>
                                             </div>
 
                                             <div class="flex justify-end border-t border-gray-200 px-6 py-4 dark:border-white/10">
