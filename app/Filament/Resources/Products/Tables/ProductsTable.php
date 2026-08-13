@@ -72,7 +72,8 @@ class ProductsTable
             ])
             ->recordActions([
                 EditAction::make()
-                    ->label('Chỉnh sửa')
+                    ->iconButton()
+                    ->tooltip('Chỉnh sửa')
                     ->modalHeading(fn ($record): string => "Chỉnh sửa sản phẩm: {$record->name}")
                     ->schema(fn (Schema $schema): Schema => ProductForm::configure($schema))
                     ->modalWidth('7xl'),

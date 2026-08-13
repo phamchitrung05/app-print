@@ -47,13 +47,7 @@ class OrdersForm
                             ->label('Trạng thái')
                             ->required()
                             ->default('new')
-                            ->options([
-                                'new' => 'Mới tạo',
-                                'confirmed' => 'Đã xác nhận',
-                                'processing' => 'Đang xử lý',
-                                'completed' => 'Hoàn thành',
-                                'cancelled' => 'Đã hủy',
-                            ]),
+                            ->options(config('orders.statuses')),
 
                         Select::make('customer_id')
                             ->label('Khách hàng')
@@ -179,19 +173,47 @@ class OrdersForm
                             ->reorderable(false)
                             ->columnSpanFull(),
 
-                        Placeholder::make('order_total')
-                            ->label('Tổng tiền')
-                            ->content(function (Get $get): string {
-                                $total = collect($get('items') ?? [])
-                                    ->sum(
-                                        fn (array $item): float => (float) ($item['quantity'] ?? 0)
-                                            * (float) ($item['total_unit_price'] ?? 0)
-                                    );
+                        Grid::make([
+                            'default' => 1,
+                            'md' => 3,
+                        ])
+                            ->schema([
+                                TextInput::make('discount')
+                                    ->label('Chiết khấu')
+                                    ->numeric()
+                                    ->minValue(0)
+                                    ->default(0)
+                                    ->prefix('₫')
+                                    ->live()
+                                    ->helperText('Số tiền được giảm trực tiếp trên đơn hàng.'),
 
-                                return number_format($total, 0, ',', '.') . ' ₫';
-                            })
-                            ->extraAttributes([
-                                'class' => 'text-xl font-bold text-primary-600',
+                                Placeholder::make('order_subtotal')
+                                    ->label('Tổng tiền hàng')
+                                    ->content(function (Get $get): string {
+                                        $subtotal = collect($get('items') ?? [])
+                                            ->sum(
+                                                fn (array $item): float => (float) ($item['quantity'] ?? 0)
+                                                    * (float) ($item['total_unit_price'] ?? 0)
+                                            );
+
+                                        return number_format($subtotal, 0, ',', '.') . ' ₫';
+                                    }),
+
+                                Placeholder::make('order_total')
+                                    ->label('Tổng thanh toán')
+                                    ->content(function (Get $get): string {
+                                        $subtotal = collect($get('items') ?? [])
+                                            ->sum(
+                                                fn (array $item): float => (float) ($item['quantity'] ?? 0)
+                                                    * (float) ($item['total_unit_price'] ?? 0)
+                                            );
+                                        $discount = max(0, (float) ($get('discount') ?? 0));
+
+                                        return number_format(max(0, $subtotal - $discount), 0, ',', '.') . ' ₫';
+                                    })
+                                    ->extraAttributes([
+                                        'class' => 'text-xl font-bold text-primary-600',
+                                    ]),
                             ])
                             ->columnSpanFull(),
                     ])

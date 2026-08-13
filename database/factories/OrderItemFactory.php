@@ -18,7 +18,10 @@ class OrderItemFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'order_id' => null,
+            'product_id' => null,
+            'quantity' => fake()->numberBetween(1, 10),
+            'total_unit_price' => fake()->randomFloat(2, 10000, 1000000),
         ];
     }
 }

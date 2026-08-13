@@ -2,12 +2,21 @@
 
 namespace App\Filament\Resources\Orders\Tables;
 
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
+use Filament\Schemas\Schema;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use App\Filament\Resources\Orders\Schemas\OrdersForm;
+use Filament\Tables\Columns\SelectColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Filament\Support\Icons\Heroicon;
 
 class OrdersTable
 {
@@ -16,13 +25,6 @@ class OrdersTable
         return $table
             ->defaultSort('ordered_at', 'desc')
             ->columns([
-                TextColumn::make('uuid')
-                    ->label('Mã đơn hàng')
-                    ->searchable()
-                    ->copyable()
-                    ->limit(16)
-                    ->tooltip(fn (?string $state): ?string => $state),
-
                 TextColumn::make('customer.name')
                     ->label('Khách hàng')
                     ->searchable()
@@ -39,25 +41,9 @@ class OrdersTable
                     ->dateTime('d/m/Y H:i')
                     ->sortable(),
 
-                TextColumn::make('status')
+                SelectColumn::make('status')
                     ->label('Trạng thái')
-                    ->badge()
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'new' => 'Mới tạo',
-                        'confirmed' => 'Đã xác nhận',
-                        'processing' => 'Đang xử lý',
-                        'completed' => 'Hoàn thành',
-                        'cancelled' => 'Đã hủy',
-                        default => $state,
-                    })
-                    ->color(fn (string $state): string => match ($state) {
-                        'new' => 'gray',
-                        'confirmed' => 'info',
-                        'processing' => 'warning',
-                        'completed' => 'success',
-                        'cancelled' => 'danger',
-                        default => 'gray',
-                    })
+                    ->options(config('orders.statuses'))
                     ->sortable(),
 
                 TextColumn::make('payment_method')
@@ -73,7 +59,7 @@ class OrdersTable
                     ->color('gray'),
 
                 TextColumn::make('total_price')
-                    ->label('Tổng tiền')
+                    ->label('Tổng tiền hàng')
                     ->formatStateUsing(
                         fn (string | int | float | null $state): string => number_format(
                             (float) ($state ?? 0),
@@ -100,13 +86,7 @@ class OrdersTable
             ->filters([
                 SelectFilter::make('status')
                     ->label('Trạng thái')
-                    ->options([
-                        'new' => 'Mới tạo',
-                        'confirmed' => 'Đã xác nhận',
-                        'processing' => 'Đang xử lý',
-                        'completed' => 'Hoàn thành',
-                        'cancelled' => 'Đã hủy',
-                    ]),
+                    ->options(config('orders.statuses')),
 
                 SelectFilter::make('payment_method')
                     ->label('Phương thức thanh toán')
@@ -118,9 +98,59 @@ class OrdersTable
                     ]),
             ])
             ->recordActions([
+                ViewAction::make()
+                    ->iconButton()
+                    ->tooltip('Xem chi tiết')
+                    ->modalHeading(fn ($record): string => "Chi tiết đơn hàng: {$record->uuid}")
+                    ->schema(fn (Schema $schema): Schema => OrdersForm::configure($schema))
+                    ->modalWidth('7xl'),
+
                 EditAction::make()
-                    ->label('Chỉnh sửa'),
-            ])
+                    ->iconButton()
+                    ->tooltip('Chỉnh sửa'),
+
+                Action::make('reorder')
+                    ->label('Đặt lại đơn này')
+                    ->icon(Heroicon::OutlinedArrowPath)
+                    ->iconButton()
+                    ->tooltip('Đặt lại đơn này')
+                    ->requiresConfirmation()
+                    ->modalHeading('Đặt lại đơn hàng')
+                    ->modalDescription('Một đơn hàng mới sẽ được tạo với toàn bộ sản phẩm và thông tin khách hàng của đơn này. Ngày đặt, mã đơn hàng và trạng thái sẽ được đặt lại.')
+                    ->modalSubmitActionLabel('Tạo đơn mới')
+                    ->action(function ($record): void {
+                        DB::transaction(function () use ($record): void {
+                            $newOrder = $record->replicate([
+                                'uuid',
+                                'ordered_at',
+                                'status',
+                                'created_at',
+                                'updated_at',
+                            ]);
+
+                            $newOrder->uuid = (string) Str::uuid();
+                            $newOrder->ordered_at = now();
+                            $newOrder->status = 'new';
+                            $newOrder->save();
+
+                            foreach ($record->items as $item) {
+                                $newOrder->items()->create([
+                                    'product_id' => $item->product_id,
+                                    'quantity' => $item->quantity,
+                                    'total_unit_price' => $item->total_unit_price,
+                                ]);
+                            }
+                        });
+                    })
+                    ->successNotificationTitle('Đã tạo đơn hàng mới'),
+
+                Action::make('print')
+                    ->icon(Heroicon::OutlinedPrinter)
+                    ->iconButton()
+                    ->tooltip('In đơn hàng')
+                    ->url(fn ($record): string => route('orders.print', $record))
+                    ->openUrlInNewTab(),
+            ], RecordActionsPosition::BeforeColumns)
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),

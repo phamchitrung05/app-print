@@ -21,6 +21,7 @@ class Customer extends Model
         'note',
         'is_active',
         'option',
+        'last_order',
     ];
 
     protected function casts(): array
@@ -28,6 +29,7 @@ class Customer extends Model
         return [
             'is_active' => 'boolean',
             'option' => 'array',
+            'last_order' => 'datetime',
         ];
     }
 

@@ -25,6 +25,8 @@ class EditOrders extends EditRecord
                 * (float) ($item['total_unit_price'] ?? 0)
         );
 
+        $data['discount'] = max(0, (float) ($data['discount'] ?? 0));
+
         return $data;
     }
 

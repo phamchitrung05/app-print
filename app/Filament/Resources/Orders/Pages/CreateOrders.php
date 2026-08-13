@@ -7,7 +7,6 @@ use Filament\Resources\Pages\CreateRecord;
 
 class CreateOrders extends CreateRecord
 {
-    protected string $view = 'filament.resources.orders.pages.create-orders';
 
     protected static string $resource = OrdersResource::class;
 
@@ -25,6 +24,8 @@ class CreateOrders extends CreateRecord
             fn (array $item): float => (float) ($item['quantity'] ?? 0)
                 * (float) ($item['total_unit_price'] ?? 0)
         );
+
+        $data['discount'] = max(0, (float) ($data['discount'] ?? 0));
 
         return $data;
     }

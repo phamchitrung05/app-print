@@ -6,6 +6,7 @@ use App\Filament\Resources\Customers\Schemas\CustomerForm;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -33,6 +34,12 @@ class CustomersTable
                     ->label('Địa chỉ')
                     ->limit(40)
                     ->tooltip(fn (?string $state): ?string => $state)
+                    ->toggleable(),
+
+                TextColumn::make('last_order')
+                    ->label('Đặt hàng gần nhất')
+                    ->dateTime('d/m/Y H:i')
+                    ->sortable()
                     ->toggleable(),
 
                 IconColumn::make('is_active')
@@ -66,8 +73,22 @@ class CustomersTable
                     ->falseLabel('Ngừng hoạt động'),
             ])
             ->recordActions([
+                ViewAction::make()
+                    ->iconButton()
+                    ->tooltip('Xem chi tiết')
+                    ->modalHeading(fn ($record): string => "Thông tin khách hàng: {$record->name}")
+                    ->schema(fn (Schema $schema): Schema => CustomerForm::configure($schema))
+                    ->modalContentFooter(
+                        fn ($record) => view(
+                            'filament.customers.orders-history',
+                            ['record' => $record],
+                        ),
+                    )
+                    ->modalWidth('7xl'),
+
                 EditAction::make()
-                    ->label('Chỉnh sửa')
+                    ->iconButton()
+                    ->tooltip('Chỉnh sửa')
                     ->modalHeading(fn ($record): string => "Chỉnh sửa khách hàng: {$record->name}")
                     ->schema(fn (Schema $schema): Schema => CustomerForm::configure($schema))
                     ->modalWidth('7xl'),

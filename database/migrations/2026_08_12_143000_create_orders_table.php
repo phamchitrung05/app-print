@@ -11,7 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('orders', function (Blueprint $table) {
+        Schema::create('orders', function (Blueprint $table) {
+            $table->id();
             $table->foreignId('customer_id')
                 ->nullable()
                 ->constrained()
@@ -25,6 +26,7 @@ return new class extends Migration
 
             $table->index(['customer_id', 'ordered_at']);
             $table->index('status');
+            $table->timestamps();
         });
     }
 
@@ -33,17 +35,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('orders', function (Blueprint $table) {
-            $table->dropIndex(['customer_id', 'ordered_at']);
-            $table->dropIndex(['status']);
-            $table->dropConstrainedForeignId('customer_id');
-            $table->dropColumn([
-                'uuid',
-                'ordered_at',
-                'status',
-                'payment_method',
-                'note',
-            ]);
-        });
+        Schema::dropIfExists('orders');
     }
 };
