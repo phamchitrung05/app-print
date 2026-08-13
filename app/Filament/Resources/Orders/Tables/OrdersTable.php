@@ -55,8 +55,7 @@ class OrdersTable
                         'e_wallet' => 'Ví điện tử',
                         default => $state,
                     })
-                    ->badge()
-                    ->color('gray'),
+                    ->badge(),
 
                 TextColumn::make('total_price')
                     ->label('Tổng tiền hàng')

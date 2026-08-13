@@ -20,12 +20,13 @@ class CreateOrders extends CreateRecord
     {
         $items = $this->form->getRawState()['items'] ?? [];
 
-        $data['total_price'] = collect($items)->sum(
+        $subtotal = collect($items)->sum(
             fn (array $item): float => (float) ($item['quantity'] ?? 0)
                 * (float) ($item['total_unit_price'] ?? 0)
         );
 
         $data['discount'] = max(0, (float) ($data['discount'] ?? 0));
+        $data['total_price'] = max(0, $subtotal - $data['discount']);
 
         return $data;
     }

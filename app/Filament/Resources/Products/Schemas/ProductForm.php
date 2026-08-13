@@ -44,6 +44,13 @@ class ProductForm
                                             ->required()
                                             ->maxLength(255)
                                             ->placeholder('Ví dụ: cái, hộp, kg'),
+
+                                        TextInput::make('sku')
+                                            ->label('SKU')
+                                            ->required()
+                                            ->unique(ignoreRecord: true)
+                                            ->maxLength(100)
+                                            ->placeholder('Nhập mã SKU'),
                                     ])
                                     ->columns(2),
 

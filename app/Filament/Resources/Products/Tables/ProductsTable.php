@@ -23,6 +23,12 @@ class ProductsTable
                     ->searchable()
                     ->sortable(),
 
+                TextColumn::make('sku')
+                    ->label('SKU')
+                    ->searchable()
+                    ->sortable()
+                    ->copyable(),
+
                 TextColumn::make('uuid')
                     ->label('UUID')
                     ->searchable()
