@@ -20,7 +20,7 @@ class PaymentResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCreditCard;
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Shop';
+    protected static string|\UnitEnum|null $navigationGroup = 'Payment';
 
     protected static ?int $navigationSort = 3;
 

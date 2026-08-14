@@ -745,10 +745,65 @@
         .signature-date {
             font-size: 2.15mm;
         }
+
+        .print-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            border: 0;
+            border-radius: 8px;
+            background: #0879d1;
+            color: #fff;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, .2);
+            transition: background .2s ease, transform .2s ease;
+        }
+
+        .print-button:hover {
+            background: #0564b4;
+            transform: translateY(-1px);
+        }
+
+        .print-button:active {
+            transform: translateY(0);
+        }
+
+        .print-button svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        @media print {
+            .print-button {
+                display: none !important;
+            }
+        }
     </style>
 </head>
 
 <body>
+<button
+    type="button"
+    class="print-button no-print"
+    onclick="window.print()"
+    aria-label="In đơn hàng"
+>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M6 9V2h12v7"/>
+        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+        <path d="M6 14h12v8H6z"/>
+    </svg>
+    <span>In đơn hàng</span>
+</button>
+
 @php
     $customer = $order->customer;
     $subtotal = $order->items->sum(

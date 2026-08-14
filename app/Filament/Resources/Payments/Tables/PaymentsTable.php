@@ -12,12 +12,19 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Builder;
 
 class PaymentsTable
 {
     public static function configure(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(
+                fn (Builder $query): Builder => $query->with([
+                    'order.customer',
+                    'confirmedBy',
+                ])
+            )
             ->columns([
                 TextColumn::make('order.customer.name')
                     ->label('Khách hàng')
@@ -62,6 +69,7 @@ class PaymentsTable
                 SelectColumn::make('payment_status')
                     ->label('Trạng thái thanh toán')
                     ->options(config('orders.payment_statuses'))
+                    ->disabled(fn (Payment $record): bool => $record->payment_status === 'confirmed')
                     ->selectablePlaceholder(false)
                     ->sortable(),
 
@@ -95,7 +103,6 @@ class PaymentsTable
                     ->icon(Heroicon::OutlinedEye)
                     ->color('info')
                     ->iconButton()
-                    ->tooltip('Xem toàn bộ đơn hàng')
                     ->modalHeading(
                         fn (Payment $record): string => "Chi tiết đơn hàng: {$record->order->uuid}"
                     )

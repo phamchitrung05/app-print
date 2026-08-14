@@ -51,6 +51,16 @@ class Orders extends Model
             foreach ($customerIds as $customerId) {
                 self::syncCustomerLastOrder((int) $customerId);
             }
+
+            if (
+                $order->wasChanged('status')
+                && $order->status === 'completed'
+                && $order->getOriginal('status') !== 'completed'
+            ) {
+                $order->payments()->firstOrCreate([], [
+                    'payment_status' => 'pending',
+                ]);
+            }
         });
 
         static::deleted(function (Orders $order): void {

@@ -18,6 +18,7 @@ use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 
 class OrdersForm
@@ -47,7 +48,8 @@ class OrdersForm
                             ->label('Trạng thái')
                             ->required()
                             ->default('new')
-                            ->options(config('orders.statuses')),
+                            ->options(config('orders.statuses'))
+                            ->selectablePlaceholder(false),
 
                         Select::make('customer_id')
                             ->label('Khách hàng')
@@ -126,7 +128,24 @@ class OrdersForm
                             ->schema([
                                 Select::make('product_id')
                                     ->label('Sản phẩm')
-                                    ->relationship('product', 'name')
+                                    ->options(function (Get $get): array {
+                                        $currentProductId = $get('product_id');
+                                        $selectedProductIds = collect($get('../../items') ?? [])
+                                            ->pluck('product_id')
+                                            ->filter()
+                                            ->reject(fn ($productId): bool => (string) $productId === (string) $currentProductId)
+                                            ->unique()
+                                            ->values();
+
+                                        return Product::query()
+                                            ->when(
+                                                $selectedProductIds->isNotEmpty(),
+                                                fn (Builder $query): Builder => $query->whereNotIn('id', $selectedProductIds)
+                                            )
+                                            ->orderBy('name')
+                                            ->pluck('name', 'id')
+                                            ->all();
+                                    })
                                     ->searchable()
                                     ->preload()
                                     ->required()
