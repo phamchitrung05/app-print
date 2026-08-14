@@ -2,324 +2,1248 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Order Form - Malibu Print</title>
-    <!-- Tailwind CSS v4 CDN -->
-    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
-    <!-- FontAwesome for Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        body {
-            font-family: Arial, Helvetica, sans-serif;
-            background-color: #f3f4f6;
-            padding: 20px;
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Đơn hàng {{ $order->uuid }} - Malibu Print</title>
+
+    <!-- Tailwind CSS 4 -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+    <!-- Google Font -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet"
+    >
+
+    <style type="text/tailwindcss">
+        @theme {
+            --font-sans: "Be Vietnam Pro", Arial, sans-serif;
+
+            --color-primary: #0879d1;
+            --color-primary-dark: #0564b4;
+            --color-orange: #f45116;
+            --color-yellow: #ffd600;
+            --color-magenta: #ec008c;
+            --color-cyan: #00a8e8;
         }
-        .print-container {
-            width: 1100px;
-            margin: 0 auto;
-            background-color: white;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    </style>
+
+    <style>
+        /* =========================================
+           PRINT SETUP
+        ========================================= */
+
+        @page {
+            size: A4 portrait;
+            margin: 0;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            background: #e5e7eb;
+            font-family: "Be Vietnam Pro", Arial, sans-serif;
+        }
+
+        body {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        .a4-page {
+            width: 210mm;
+            height: 297mm;
             position: relative;
             overflow: hidden;
+            background: #fff;
+            margin: 20px auto;
+            box-shadow: 0 5px 30px rgba(0, 0, 0, .15);
         }
-        /* Decor top right */
-        .decor-top-right {
+
+        @media print {
+            html,
+            body {
+                width: 210mm;
+                height: 297mm;
+                background: #fff;
+            }
+
+            .a4-page {
+                width: 210mm;
+                height: 297mm;
+                margin: 0;
+                box-shadow: none;
+                page-break-after: always;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+        }
+
+        /* =========================================
+           DECORATIVE CMYK LINES
+        ========================================= */
+
+        .cmyk-top {
             position: absolute;
             top: 0;
             right: 0;
-            width: 300px;
-            height: 100px;
-            background-image: radial-gradient(circle at 100% 0%, #1a73e8 15%, #ff007f 40%, #ffeb3b 65%, #000 90%);
-            border-bottom-left-radius: 100%;
-            opacity: 0.8;
-            z-index: 0;
-            clip-path: polygon(0 0, 100% 0, 100% 100%, 30% 0%);
+            width: 52mm;
+            height: 29mm;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .cmyk-top span {
+            position: absolute;
+            width: 75mm;
+            height: 16mm;
+            border-radius: 100px;
+            transform: rotate(-45deg);
+        }
+
+        .cmyk-top .cyan {
+            background: #009fe3;
+            top: -11mm;
+            right: -20mm;
+        }
+
+        .cmyk-top .magenta {
+            background: #ed008c;
+            top: -7mm;
+            right: -18mm;
+        }
+
+        .cmyk-top .yellow {
+            background: #ffdc00;
+            top: -3mm;
+            right: -16mm;
+        }
+
+        .cmyk-top .black {
+            background: #151515;
+            top: 1mm;
+            right: -14mm;
+        }
+
+        .cmyk-bottom {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 5mm;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .cmyk-bottom .cyan {
+            width: 34%;
+            background: #009fe3;
+        }
+
+        .cmyk-bottom .magenta {
+            width: 30%;
+            background: #ed008c;
+        }
+
+        .cmyk-bottom .yellow {
+            width: 15%;
+            background: #ffdc00;
+        }
+
+        .cmyk-bottom .black {
+            flex: 1;
+            background: #151515;
+        }
+
+        /* =========================================
+           CONTENT
+        ========================================= */
+
+        .page-content {
+            position: relative;
+            z-index: 2;
+            height: 100%;
+            padding:
+                9mm
+                9.5mm
+                9mm
+                9.5mm;
+        }
+
+        /* =========================================
+           LOGO
+        ========================================= */
+
+        .logo-mark {
+            position: relative;
+            width: 42mm;
+            height: 20mm;
+        }
+
+        .logo-mark span {
+            position: absolute;
+            height: 2.4mm;
+            border-radius: 20px;
+            transform: rotate(17deg);
+        }
+
+        .logo-mark .l1 {
+            width: 34mm;
+            left: 3mm;
+            top: 5mm;
+            background: #009fe3;
+        }
+
+        .logo-mark .l2 {
+            width: 31mm;
+            left: 6mm;
+            top: 8mm;
+            background: #ed008c;
+        }
+
+        .logo-mark .l3 {
+            width: 28mm;
+            left: 9mm;
+            top: 11mm;
+            background: #ffdc00;
+        }
+
+        .logo-mark .l4 {
+            width: 25mm;
+            left: 12mm;
+            top: 14mm;
+            background: #151515;
+        }
+
+        /* =========================================
+           HEADER
+        ========================================= */
+
+        .header {
+            display: grid;
+            grid-template-columns: 1fr 1.15fr;
+            gap: 8mm;
+            height: 68mm;
+        }
+
+        .company-info {
+            position: relative;
+            padding-right: 4mm;
+        }
+
+        .company-divider {
+            position: absolute;
+            right: 0;
+            top: 3mm;
+            width: 0.3mm;
+            height: 72mm;
+            background: #000000;
+        }
+
+        .brand-name {
+            margin-top: -1mm;
+            font-size: 7mm;
+            line-height: 1;
+            font-weight: 800;
+            letter-spacing: -0.4mm;
+        }
+
+        .brand-name .malibu {
+            color: #f45116;
+        }
+
+        .brand-name .print {
+            color: #1387d6;
+        }
+
+        .brand-subtitle {
+            margin-top: 2mm;
+            color: #f45116;
+            font-size: 2.1mm;
+            font-weight: 600;
+            letter-spacing: 1.3mm;
+        }
+
+        .company-contact {
+            display: flex;
+            flex-direction: column;
+            gap: 3.5mm;
+            color: #222;
+            font-size: 2.8mm;
+        }
+
+        .contact-row {
+            display: flex;
+            align-items: center;
+            gap: 3mm;
+        }
+
+        .contact-icon {
+            width: 4mm;
+            height: 4mm;
+            flex-shrink: 0;
+            color: #0879d1;
+        }
+
+        /* =========================================
+           ORDER HEADER
+        ========================================= */
+
+        .order-header {
+            position: relative;
+            padding-left: 1mm;
+        }
+
+        .order-title {
+            font-size: 9mm;
+            line-height: 1;
+            font-weight: 800;
+            color: #f45116;
+            margin-bottom: 2mm;
+        }
+
+        .order-code {
+            display: inline-block;
+            padding: 1.3mm 4mm;
+            border-radius: 1.5mm;
+            background: #0879d1;
+            color: #fff;
+            font-size: 3.1mm;
+            font-weight: 700;
+            letter-spacing: .1mm;
+            margin-bottom: 4mm;
+        }
+
+        .order-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 3.5mm;
+        }
+
+        .order-meta-row {
+            display: grid;
+            grid-template-columns: 7mm 31mm 4mm 1fr;
+            align-items: center;
+            font-size: 2.8mm;
+        }
+
+        .order-meta-icon {
+            width: 4.2mm;
+            height: 4.2mm;
+            color: #303b4a;
+        }
+
+        .order-meta-label {
+            font-weight: 500;
+        }
+
+        /* =========================================
+           INFORMATION BOXES
+        ========================================= */
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6mm;
+            height: 43mm;
+        }
+
+        .info-box {
+            position: relative;
+            border: .35mm solid;
+            border-radius: 2mm;
+            padding: 8mm 4mm 3.5mm;
+        }
+
+        .customer-box {
+            border-color: #5ca9ef;
+            background: linear-gradient(
+                135deg,
+                rgba(0, 136, 255, .025),
+                rgba(0, 136, 255, .08)
+            );
+        }
+
+        .order-box {
+            border-color: #ff9a62;
+            background: linear-gradient(
+                135deg,
+                rgba(255, 100, 0, .02),
+                rgba(255, 100, 0, .06)
+            );
+        }
+
+        .info-title {
+            position: absolute;
+            left: 3mm;
+            top: -4mm;
+            display: flex;
+            align-items: center;
+            gap: 2mm;
+            padding: 1.6mm 3mm;
+            border-radius: 1.5mm;
+            color: #fff;
+            font-size: 3.1mm;
+            font-weight: 700;
+        }
+
+        .customer-box .info-title {
+            background: #0879d1;
+        }
+
+        .order-box .info-title {
+            background: #f45116;
+        }
+
+        .info-title svg {
+            width: 4mm;
+            height: 4mm;
+        }
+
+        .info-list {
+            display: flex;
+            flex-direction: column;
+            gap: 2.4mm;
+            font-size: 2.7mm;
+        }
+
+        .info-row {
+            display: grid;
+            grid-template-columns: 31mm 4mm 1fr;
+        }
+
+        .info-label {
+            font-weight: 500;
+        }
+
+        .status {
+            color: #f45116;
+            font-weight: 700;
+        }
+
+        /* =========================================
+           PRODUCT TABLE
+        ========================================= */
+
+        .product-table-wrap {
+            margin-top: 5mm;
+            border: .3mm solid #6aa9e6;
+            border-radius: 2mm;
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        thead {
+            background: #0879d1;
+            color: white;
+        }
+
+        th {
+            height: 9mm;
+            padding: 1mm;
+            font-size: 2.8mm;
+            font-weight: 700;
+            border-right: .2mm solid rgba(255,255,255,.45);
+        }
+
+        th:last-child {
+            border-right: none;
+        }
+
+        td {
+            height: 18mm;
+            padding: 2mm 2.5mm;
+            border-right: .2mm solid #d9dee5;
+            border-bottom: .2mm solid #d9dee5;
+            vertical-align: middle;
+            font-size: 2.55mm;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        td:last-child {
+            border-right: none;
+        }
+
+        tbody tr:nth-child(even) {
+            background: #f7f9fb;
+        }
+
+        .col-stt {
+            width: 8%;
+            text-align: center;
+        }
+
+        .col-product {
+            width: 23%;
+        }
+
+        .col-description {
+            width: 27%;
+        }
+
+        .col-quantity {
+            width: 14%;
+            text-align: center;
+        }
+
+        .col-price {
+            width: 14%;
+            text-align: center;
+        }
+
+        .col-total {
+            width: 14%;
+            text-align: center;
+        }
+
+        .product-cell {
+            display: flex;
+            align-items: center;
+            gap: 2mm;
+        }
+
+        .product-image {
+            width: 16mm;
+            height: 14mm;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+
+        .product-name {
+            font-weight: 700;
+            font-size: 2.7mm;
+        }
+
+        .description {
+            line-height: 1.45;
+        }
+
+        .money {
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .total-money {
+            color: #f45116;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        /* =========================================
+           BOTTOM INFORMATION
+        ========================================= */
+
+        .bottom-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1.08fr;
+            gap: 3mm;
+            margin-top: 4mm;
+            height: 36mm;
+        }
+
+        .bottom-box {
+            border: .3mm solid;
+            border-radius: 2mm;
+            padding: 3mm;
+        }
+
+        .note-box {
+            border-color: #77b9ef;
+        }
+
+        .payment-box {
+            border-color: #f4d45e;
+        }
+
+        .summary-box {
+            border-color: #d6d6d6;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .section-heading {
+            display: flex;
+            align-items: center;
+            gap: 2mm;
+            font-size: 3mm;
+            font-weight: 700;
+            margin-bottom: 2.5mm;
+        }
+
+        .note-box .section-heading {
+            color: #0879d1;
+        }
+
+        .payment-box .section-heading {
+            color: #f45116;
+            justify-content: center;
+        }
+
+        .section-heading svg {
+            width: 4mm;
+            height: 4mm;
+        }
+
+        .notes {
+            display: flex;
+            flex-direction: column;
+            gap: 1.8mm;
+            font-size: 2.15mm;
+            line-height: 1.35;
+        }
+
+        .note-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 1.5mm;
+        }
+
+        .check {
+            width: 3mm;
+            height: 3mm;
+            flex-shrink: 0;
+            margin-top: .2mm;
+            color: #0879d1;
+        }
+
+        .payment-content {
+            display: grid;
+            grid-template-columns: 20mm 1fr;
+            gap: 3mm;
+            align-items: center;
+        }
+
+        .qr {
+            width: 19mm;
+            height: 19mm;
+            object-fit: contain;
+        }
+
+        .payment-details {
+            font-size: 2.15mm;
+            line-height: 1.8;
+        }
+
+        .payment-details .label {
+            display: inline-block;
+            width: 17mm;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 2.2mm 3mm 0;
+            font-size: 2.3mm;
+        }
+
+        .summary-total {
+            margin-top: 2mm;
+            padding: 3mm;
+            background: #f45116;
+            color: #fff;
+            text-align: center;
+        }
+
+        .summary-total-label {
+            font-size: 2.5mm;
+            font-weight: 700;
+        }
+
+        .summary-total-price {
+            font-size: 5.5mm;
+            font-weight: 800;
+            margin-top: .5mm;
+        }
+
+        .summary-words {
+            text-align: center;
+            font-size: 2.15mm;
+            padding: 1.5mm;
+        }
+
+        /* =========================================
+           SIGNATURE
+        ========================================= */
+
+        .signature {
+            height: 27mm;
+            margin-top: 3mm;
+            border: .3mm solid #dedede;
+            border-radius: 2mm;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            overflow: hidden;
+        }
+
+        .signature-item {
+            position: relative;
+            text-align: center;
+            padding-top: 3mm;
+            border-right: .3mm solid #ddd;
+        }
+
+        .signature-item:last-child {
+            border-right: none;
+        }
+
+        .signature-title {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 2mm;
+            font-size: 2.9mm;
+            font-weight: 700;
+        }
+
+        .signature-item:nth-child(1) .signature-title {
+            color: #0879d1;
+        }
+
+        .signature-item:nth-child(2) .signature-title {
+            color: #f45116;
+        }
+
+        .signature-item:nth-child(3) .signature-title {
+            color: #ed008c;
+        }
+
+        .signature-title svg {
+            width: 4.5mm;
+            height: 4.5mm;
+        }
+
+        .signature-note {
+            font-size: 2.2mm;
+            margin-top: .5mm;
+        }
+
+        .signature-line {
+            width: 70%;
+            margin: 9mm auto 1.5mm;
+            border-bottom: .25mm dotted #555;
+        }
+
+        .signature-date {
+            font-size: 2.15mm;
         }
     </style>
 </head>
-<body class="text-gray-800 text-sm">
 
-<div class="print-container p-8">
-    <!-- HEADER -->
-    <header class="flex justify-between items-start border-b border-gray-200 pb-4 mb-8 relative z-10">
-        <!-- Left: Logo & Contact -->
-        <div class="flex items-center gap-8">
-            <!-- Logo -->
-            <div class="text-center">
-                <div class="relative w-32 h-16 mb-1">
-                    <!-- Abstract Logo Graphic Placeholder -->
-                    <div class="absolute inset-0 flex justify-center items-end pb-2">
-                        <div class="w-24 h-12 rounded-t-full bg-gradient-to-r from-blue-500 via-pink-500 to-yellow-400"></div>
-                        <div class="w-16 h-8 rounded-t-full bg-white absolute bottom-2"></div>
+<body>
+@php
+    $customer = $order->customer;
+    $subtotal = $order->items->sum(
+        fn ($item) => (float) $item->quantity * (float) $item->total_unit_price
+    );
+    $discount = max(0, (float) ($order->discount ?? 0));
+    $total = max(0, $subtotal - $discount);
+    $statusLabel = config("orders.statuses.{$order->status}", $order->status ?: '—');
+    $paymentMethods = config('orders.payment_methods', []);
+    $paymentMethodLabel = $paymentMethods[$order->payment_method] ?? ($order->payment_method ?: '—');
+@endphp
+
+<div class="a4-page">
+
+    <!-- ================================
+         DECORATIVE ELEMENTS
+    ================================= -->
+
+    <div class="cmyk-top">
+        <img src="{{ asset('storage/malibu-rainbow.png')  }}">
+    </div>
+
+    <div class="cmyk-bottom">
+        <div class="cyan"></div>
+        <div class="magenta"></div>
+        <div class="yellow"></div>
+        <div class="black"></div>
+    </div>
+
+
+    <main class="page-content">
+
+        <!-- ================================
+             HEADER
+        ================================= -->
+
+        <section class="header mb-6">
+
+            <!-- COMPANY -->
+            <div class="company-info">
+
+               <div class="logo mb-5">
+                   <img src="{{ asset('storage/malibu-print-logo.png')  }}">
+               </div>
+
+                <div class="company-contact font-bold">
+
+                    <div class="contact-row">
+                        <svg class="contact-icon" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2a8 8 0 0 0-8 8c0 5.8 8 12 8 12s8-6.2 8-12a8 8 0 0 0-8-8zm0 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/>
+                        </svg>
+                        <span>20 Đoàn Nguyễn Tuấn, P. Quy Nhơn, Tỉnh Gia Lai</span>
                     </div>
+
+                    <div class="contact-row">
+                        <svg class="contact-icon" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M6.6 10.8c1.5 2.9 3.7 5.1 6.6 6.6l2.2-2.2c.3-.3.8-.4 1.2-.2 1.3.4 2.6.7 3.9.7.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C11.4 21 3 12.6 3 2.5c0-.6.4-1 1-1h3.3c.6 0 1 .4 1 1 0 1.3.2 2.6.7 3.9.1.4.1.8-.2 1.2l-2.2 2.2z"/>
+                        </svg>
+                        <span>0931 94 83 43</span>
+                    </div>
+
+                    <div class="contact-row">
+                        <svg class="contact-icon" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M2 5h20v14H2V5zm10 7L4 7v10h16V7l-8 5zm0-2.2L20 6H4l8 3.8z"/>
+                        </svg>
+                        <span>malibuprint@gmail.com</span>
+                    </div>
+
+                    <div class="contact-row">
+                        <svg class="contact-icon" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm6.9 6h-3.1a15.5 15.5 0 0 0-1.2-3.1A8.1 8.1 0 0 1 18.9 8zM12 4c.8 1.1 1.4 2.4 1.8 4h-3.6c.4-1.6 1-2.9 1.8-4zM4.3 14a8 8 0 0 1 0-4h3.3a16.6 16.6 0 0 0 0 4H4.3zm.8 2h3.1c.3 1.1.7 2.1 1.2 3.1A8.1 8.1 0 0 1 5.1 16zm3.1-8H5.1a8.1 8.1 0 0 1 4.3-3.1A15.5 15.5 0 0 0 8.2 8zM12 20c-.8-1.1-1.4-2.4-1.8-4h3.6c-.4 1.6-1 2.9-1.8 4zm2.2-6H9.8a14.7 14.7 0 0 1 0-4h4.4a14.7 14.7 0 0 1 0 4zm.4 5.1c.5-1 .9-2 1.2-3.1h3.1a8.1 8.1 0 0 1-4.3 3.1zM16.4 14a16.6 16.6 0 0 0 0-4h3.3a8 8 0 0 1 0 4h-3.3z"/>
+                        </svg>
+                        <span>www.malibuprint.vn</span>
+                    </div>
+
                 </div>
-                <h1 class="text-2xl font-bold">
-                    <span class="text-orange-500">Malibu</span> <span class="text-blue-500">PRINT</span>
-                </h1>
-                <p class="text-[9px] text-orange-500 tracking-widest font-semibold">DESIGN AND PRINTING</p>
+
+                <div class="company-divider"></div>
             </div>
 
-            <!-- Contact Info -->
-            <div class="space-y-2 text-xs">
-                <p class="flex items-center gap-2"><i class="fa-solid fa-location-dot text-blue-500 w-4"></i> 123 Nguyễn Văn Linh, Hải Châu, Đà Nẵng</p>
-                <p class="flex items-center gap-2"><i class="fa-solid fa-phone text-blue-500 w-4"></i> 0905 123 456</p>
-                <p class="flex items-center gap-2"><i class="fa-solid fa-envelope text-blue-500 w-4"></i> malibu.print@gmail.com</p>
-                <p class="flex items-center gap-2"><i class="fa-solid fa-globe text-blue-500 w-4"></i> www.malibuprint.vn</p>
-            </div>
-        </div>
 
-        <!-- Right: Order Info -->
-        <div class="text-right border-l border-gray-200 pl-8 pr-12 relative z-10">
-            <h2 class="text-4xl font-bold text-orange-500 tracking-wider">ORDER</h2>
-            <div class="bg-blue-600 text-white text-xs font-bold py-1 px-4 rounded inline-block mt-1 mb-3">
-                #ORD-2026-0812-001
-            </div>
+            <!-- ORDER -->
+            <div class="order-header pt-15">
 
-            <div class="grid grid-cols-2 gap-x-6 gap-y-2 text-xs text-left">
-                <p><i class="fa-regular fa-calendar text-gray-500 w-4"></i> Ngày đặt hàng <span class="float-right">:</span></p>
-                <p>12/08/2026</p>
-
-                <p><i class="fa-regular fa-file-lines text-gray-500 w-4"></i> Số trang <span class="float-right">:</span></p>
-                <p>1/1</p>
-
-                <p><i class="fa-regular fa-calendar-check text-gray-500 w-4"></i> Ngày giao hàng <span class="float-right">:</span></p>
-                <p>15/08/2026</p>
-
-                <p><i class="fa-regular fa-user text-gray-500 w-4"></i> Nhân viên <span class="float-right">:</span></p>
-                <p>Nguyễn Văn A</p>
-            </div>
-        </div>
-        <!-- Decorative corner -->
-        <div class="decor-top-right"></div>
-    </header>
-
-    <!-- INFO SECTION (Customer & Order) -->
-    <div class="grid grid-cols-2 gap-6 mb-8">
-        <!-- Customer Info -->
-        <div class="border border-blue-400 rounded-md p-4 pt-5 relative">
-            <div class="absolute -top-3 left-4 bg-blue-500 text-white text-xs font-bold py-1 px-3 rounded-full flex items-center gap-2">
-                <i class="fa-solid fa-user"></i> THÔNG TIN KHÁCH HÀNG
-            </div>
-            <div class="grid grid-cols-[100px_10px_1fr] gap-y-2 text-xs">
-                <div class="font-semibold text-gray-700">Tên khách hàng</div><div>:</div><div class="font-bold">Công Ty TNHH ABC</div>
-                <div class="font-semibold text-gray-700">Địa chỉ</div><div>:</div><div>45 Lê Duẩn, Hải Châu, Đà Nẵng</div>
-                <div class="font-semibold text-gray-700">Điện thoại</div><div>:</div><div>0905 987 654</div>
-                <div class="font-semibold text-gray-700">Email</div><div>:</div><div>contact@abc.com</div>
-                <div class="font-semibold text-gray-700">Mã số thuế</div><div>:</div><div>0401234567</div>
-            </div>
-        </div>
-
-        <!-- Order Info -->
-        <div class="border border-orange-400 rounded-md p-4 pt-5 relative">
-            <div class="absolute -top-3 left-4 bg-orange-500 text-white text-xs font-bold py-1 px-3 rounded-full flex items-center gap-2">
-                <i class="fa-solid fa-clipboard-list"></i> THÔNG TIN ĐƠN HÀNG
-            </div>
-            <div class="grid grid-cols-[120px_10px_1fr] gap-y-2 text-xs">
-                <div class="font-semibold text-gray-700">Loại đơn hàng</div><div>:</div><div>In ấn</div>
-                <div class="font-semibold text-gray-700">Hình thức thanh toán</div><div>:</div><div>Chuyển khoản</div>
-                <div class="font-semibold text-gray-700">Trạng thái</div><div>:</div><div class="text-red-500 font-bold">Chờ sản xuất</div>
-                <div class="font-semibold text-gray-700">Ghi chú</div><div>:</div><div>In test màu trước khi in số lượng lớn</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- TABLE SECTION -->
-    <table class="w-full text-xs border-collapse border border-gray-300 mb-6 text-center">
-        <thead>
-        <tr class="bg-[#1877f2] text-white">
-            <th class="border border-gray-300 p-2 w-[5%]">STT</th>
-            <th class="border border-gray-300 p-2 w-[25%] text-left">TÊN SẢN PHẨM</th>
-            <th class="border border-gray-300 p-2 w-[35%] text-left">QUY CÁCH / MÔ TẢ</th>
-            <th class="border border-gray-300 p-2 w-[10%]">SỐ LƯỢNG</th>
-            <th class="border border-gray-300 p-2 w-[10%]">ĐƠN GIÁ</th>
-            <th class="border border-gray-300 p-2 w-[15%]">THÀNH TIỀN</th>
-        </tr>
-        </thead>
-        <tbody>
-        <!-- Item 1 -->
-        <tr class="border-b border-gray-200 bg-gray-50/30">
-            <td class="p-3">1</td>
-            <td class="p-3 text-left font-bold flex items-center gap-3">
-                <div class="w-10 h-10 bg-gray-200 rounded flex-shrink-0 border border-gray-300 overflow-hidden relative">
-                    <div class="absolute inset-0 bg-gradient-to-br from-blue-900 to-black"></div>
+                <div class="order-title">
+                    ORDER
                 </div>
-                Danh thiếp
-            </td>
-            <td class="p-3 text-left text-[11px] text-gray-700 leading-tight">
-                Kích thước: 9 x 5.5 cm<br>
-                Giấy: Couche 300gsm<br>
-                Cán mờ 2 mặt
-            </td>
-            <td class="p-3">500 Hộp</td>
-            <td class="p-3">120.000</td>
-            <td class="p-3 font-bold text-red-600">60.000.000</td>
-        </tr>
-        <!-- Item 2 -->
-        <tr class="border-b border-gray-200">
-            <td class="p-3">2</td>
-            <td class="p-3 text-left font-bold flex items-center gap-3">
-                <div class="w-10 h-10 bg-green-100 rounded flex-shrink-0 border border-gray-300 relative overflow-hidden">
-                    <div class="absolute inset-0 bg-green-600 opacity-20"></div>
-                </div>
-                Tờ rơi A5
-            </td>
-            <td class="p-3 text-left text-[11px] text-gray-700 leading-tight">
-                Kích thước: A5 (14.8 x 21 cm)<br>
-                Giấy: Couche 150gsm<br>
-                In 2 mặt
-            </td>
-            <td class="p-3">1.000 Tờ</td>
-            <td class="p-3">1.200</td>
-            <td class="p-3 font-bold text-red-600">1.200.000</td>
-        </tr>
-        <!-- Item 3 -->
-        <tr class="border-b border-gray-200 bg-gray-50/30">
-            <td class="p-3">3</td>
-            <td class="p-3 text-left font-bold flex items-center gap-3">
-                <div class="w-10 h-10 bg-blue-100 rounded flex-shrink-0 border border-gray-300 relative overflow-hidden">
-                    <div class="absolute inset-0 bg-blue-900 opacity-80"></div>
-                </div>
-                Poster A3
-            </td>
-            <td class="p-3 text-left text-[11px] text-gray-700 leading-tight">
-                Kích thước: A3 (29.7 x 42 cm)<br>
-                Giấy: Couche 200gsm<br>
-                In 1 mặt
-            </td>
-            <td class="p-3">200 Tờ</td>
-            <td class="p-3">3.500</td>
-            <td class="p-3 font-bold text-red-600">700.000</td>
-        </tr>
-        <!-- Item 4 -->
-        <tr class="border-b border-gray-200">
-            <td class="p-3">4</td>
-            <td class="p-3 text-left font-bold flex items-center gap-3">
-                <div class="w-10 h-10 bg-gray-100 rounded flex-shrink-0 border border-gray-300 relative overflow-hidden flex gap-1 p-1">
-                    <div class="w-1/3 bg-gray-400 h-full"></div>
-                    <div class="w-1/3 bg-gray-300 h-full"></div>
-                    <div class="w-1/3 bg-gray-400 h-full"></div>
-                </div>
-                Brochure gấp 3
-            </td>
-            <td class="p-3 text-left text-[11px] text-gray-700 leading-tight">
-                Kích thước: A4 gấp 3<br>
-                Giấy: Couche 150gsm<br>
-                In 2 mặt, cán mờ
-            </td>
-            <td class="p-3">500 Tờ</td>
-            <td class="p-3">2.800</td>
-            <td class="p-3 font-bold text-red-600">1.400.000</td>
-        </tr>
-        <!-- Item 5 -->
-        <tr class="border-b border-gray-200 bg-gray-50/30">
-            <td class="p-3">5</td>
-            <td class="p-3 text-left font-bold flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full flex-shrink-0 border border-gray-300 relative overflow-hidden bg-yellow-400 flex items-center justify-center">
-                    <div class="w-6 h-6 bg-blue-500 rounded-full"></div>
-                </div>
-                Decal dán
-            </td>
-            <td class="p-3 text-left text-[11px] text-gray-700 leading-tight">
-                Kích thước: 5 x 5 cm (tròn)<br>
-                Chất liệu: Decal giấy<br>
-                Bế theo file
-            </td>
-            <td class="p-3">1.000 Tem</td>
-            <td class="p-3">500</td>
-            <td class="p-3 font-bold text-red-600">500.000</td>
-        </tr>
-        </tbody>
-    </table>
 
-    <!-- BOTTOM SECTION -->
-    <div class="grid grid-cols-[30%_35%_35%] gap-4 mb-10">
-        <!-- Notes -->
-        <div class="bg-gray-50 border border-gray-200 rounded p-3 text-[10px]">
-            <h4 class="font-bold text-blue-600 mb-2 flex items-center gap-1"><i class="fa-solid fa-file-lines"></i> GHI CHÚ</h4>
-            <ul class="space-y-1 text-gray-600">
-                <li class="flex gap-1"><i class="fa-solid fa-circle-check text-blue-500 mt-[2px]"></i> Vui lòng kiểm tra kỹ nội dung, chính tả trước khi duyệt in.</li>
-                <li class="flex gap-1"><i class="fa-solid fa-circle-check text-blue-500 mt-[2px]"></i> Thời gian giao hàng có thể thay đổi tùy theo khối lượng thực tế.</li>
-                <li class="flex gap-1"><i class="fa-solid fa-circle-check text-blue-500 mt-[2px]"></i> Cảm ơn quý khách đã tin tưởng và sử dụng dịch vụ của chúng tôi!</li>
-            </ul>
-        </div>
+                <div class="order-code">
+                    #{{ $order->uuid }}
+                </div>
 
-        <!-- Payment Info -->
-        <div class="bg-orange-50 border border-orange-100 rounded p-3 flex gap-4 items-center">
-            <div class="w-16 h-16 bg-white border border-gray-300 p-1 flex-shrink-0">
-                <!-- Fake QR Code -->
-                <svg viewBox="0 0 100 100" class="w-full h-full text-black fill-current">
-                    <path d="M0 0h30v30H0zM10 10h10v10H10zM70 0h30v30H70zM80 10h10v10H80zM0 70h30v30H0zM10 80h10v10H10zM40 0h20v10H40zM50 20h10v20H50zM40 40h20v20H40zM80 50h20v10H80zM70 70h10v20H70zM90 80h10v20H90zM40 80h20v10H40z"/>
-                </svg>
-            </div>
-            <div class="text-[11px]">
-                <h4 class="font-bold text-orange-600 mb-1">THÔNG TIN THANH TOÁN</h4>
-                <div class="grid grid-cols-[80px_10px_1fr] gap-y-1">
-                    <div class="font-semibold text-gray-700">Ngân hàng</div><div>:</div><div class="font-bold">Vietcombank</div>
-                    <div class="font-semibold text-gray-700">Số tài khoản</div><div>:</div><div class="font-bold tracking-widest">1234 5678 9012</div>
-                    <div class="font-semibold text-gray-700">Chủ tài khoản</div><div>:</div><div class="font-bold">MALIBU PRINT</div>
+                <div class="order-meta">
+
+                    <div class="order-meta-row">
+                        <svg class="order-meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2"/>
+                            <line x1="16" y1="2" x2="16" y2="6"/>
+                            <line x1="8" y1="2" x2="8" y2="6"/>
+                            <line x1="3" y1="10" x2="21" y2="10"/>
+                        </svg>
+                        <span class="order-meta-label">Ngày đặt hàng</span>
+                        <span>:</span>
+                        <span>{{ $order->ordered_at?->format('d/m/Y') ?? '—' }}</span>
+                    </div>
+
+                    <div class="order-meta-row">
+                        <svg class="order-meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2"/>
+                            <line x1="16" y1="2" x2="16" y2="6"/>
+                            <line x1="8" y1="2" x2="8" y2="6"/>
+                            <line x1="3" y1="10" x2="21" y2="10"/>
+                        </svg>
+                        <span class="order-meta-label">Ngày giao hàng</span>
+                        <span>:</span>
+                        <span>—</span>
+                    </div>
+
+                    <div class="order-meta-row">
+                        <svg class="order-meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 2h9l5 5v15H6z"/>
+                            <path d="M14 2v6h6"/>
+                            <line x1="9" y1="13" x2="17" y2="13"/>
+                            <line x1="9" y1="17" x2="17" y2="17"/>
+                        </svg>
+                        <span class="order-meta-label">Số trang</span>
+                        <span>:</span>
+                        <span>1/1</span>
+                    </div>
+
+                    <div class="order-meta-row">
+                        <svg class="order-meta-icon" viewBox="0 0 24 24" fill="currentColor">
+                            <circle cx="12" cy="7" r="4"/>
+                            <path d="M4 22a8 8 0 0 1 16 0H4z"/>
+                        </svg>
+                        <span class="order-meta-label">Nhân viên</span>
+                        <span>:</span>
+                        <span>—</span>
+                    </div>
+
                 </div>
             </div>
-        </div>
 
-        <!-- Totals -->
-        <div class="border border-gray-200 rounded flex flex-col justify-between overflow-hidden text-[12px]">
-            <div class="p-3 space-y-2">
-                <div class="flex justify-between">
-                    <span class="text-gray-600">Tổng tiền hàng</span>
-                    <span class="font-semibold">63.800.000</span>
+        </section>
+
+
+        <!-- ================================
+             CUSTOMER + ORDER INFO
+        ================================= -->
+
+        <section class="info-grid mt-15">
+
+            <!-- CUSTOMER -->
+            <div class="info-box customer-box">
+
+                <div class="info-title">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <circle cx="9" cy="8" r="4"/>
+                        <path d="M2 21a7 7 0 0 1 14 0H2z"/>
+                        <circle cx="17" cy="7" r="3"/>
+                        <path d="M15 13a6 6 0 0 1 7 6h-5"/>
+                    </svg>
+
+                    THÔNG TIN KHÁCH HÀNG
                 </div>
-                <div class="flex justify-between">
-                    <span class="text-gray-600">Chiết khấu</span>
-                    <span class="font-semibold">3.800.000</span>
+
+                <div class="info-list">
+
+                    <div class="info-row">
+                        <span class="info-label">Tên khách hàng</span>
+                        <span>:</span>
+                        <span>{{ $customer?->name ?? '—' }}</span>
+                    </div>
+
+                    <div class="info-row">
+                        <span class="info-label">Địa chỉ</span>
+                        <span>:</span>
+                        <span>{{ $customer?->address ?? '—' }}</span>
+                    </div>
+
+                    <div class="info-row">
+                        <span class="info-label">Điện thoại</span>
+                        <span>:</span>
+                        <span>{{ $customer?->phone ?? '—' }}</span>
+                    </div>
+
+                    <div class="info-row">
+                        <span class="info-label">Email</span>
+                        <span>:</span>
+                        <span>—</span>
+                    </div>
+
+                    <div class="info-row">
+                        <span class="info-label">Mã số thuế</span>
+                        <span>:</span>
+                        <span>—</span>
+                    </div>
+
                 </div>
+
             </div>
-            <div>
-                <div class="bg-[#ff5722] text-white p-2 px-3 flex justify-between items-center font-bold text-sm">
-                    <span>TỔNG THANH TOÁN</span>
-                    <span class="text-lg">60.000.000 VNĐ</span>
+
+
+            <!-- ORDER INFO -->
+            <div class="info-box order-box">
+
+                <div class="info-title">
+
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M6 2h12v20H6z"/>
+                        <path d="M9 6h6M9 10h6M9 14h4"
+                              stroke="#fff"
+                              stroke-width="1.5"
+                              fill="none"/>
+                    </svg>
+
+                    THÔNG TIN ĐƠN HÀNG
                 </div>
-                <div class="text-center text-[10px] text-gray-500 py-1 italic bg-gray-50">
-                    (Sáu mươi triệu đồng chẵn)
+
+                <div class="info-list">
+
+                    <div class="info-row">
+                        <span class="info-label">Loại đơn hàng</span>
+                        <span>:</span>
+                        <span>In ấn</span>
+                    </div>
+
+                    <div class="info-row">
+                        <span class="info-label">Hình thức thanh toán</span>
+                        <span>:</span>
+                        <span>{{ $paymentMethodLabel }}</span>
+                    </div>
+
+                    <div class="info-row">
+                        <span class="info-label">Trạng thái</span>
+                        <span>:</span>
+                        <span class="status">{{ $statusLabel }}</span>
+                    </div>
+
+                    <div class="info-row">
+                        <span class="info-label">Ghi chú</span>
+                        <span>:</span>
+                        <span class="text-xs font-bold">{{ $order->note ?: '—' }}</span>
+                    </div>
+
                 </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- SIGNATURES -->
-    <div class="grid grid-cols-3 text-center text-xs pt-4">
-        <div class="flex flex-col items-center">
-            <div class="font-bold text-blue-600 flex items-center gap-1 mb-1">
-                <i class="fa-solid fa-user-circle"></i> KHÁCH HÀNG
             </div>
-            <div class="italic text-gray-500 mb-16">(Ký, ghi rõ họ tên)</div>
-            <div class="w-48 border-t border-dashed border-gray-400 pt-2">
-                Ngày ...... tháng ...... năm 2026
-            </div>
-        </div>
 
-        <div class="flex flex-col items-center">
-            <div class="font-bold text-orange-500 flex items-center gap-1 mb-1">
-                <i class="fa-solid fa-user-tie"></i> NHÂN VIÊN KINH DOANH
-            </div>
-            <div class="italic text-gray-500 mb-16">(Ký, ghi rõ họ tên)</div>
-            <div class="w-48 border-t border-dashed border-gray-400 pt-2"></div>
-        </div>
+        </section>
 
-        <div class="flex flex-col items-center">
-            <div class="font-bold text-pink-600 flex items-center gap-1 mb-1">
-                <i class="fa-solid fa-user-shield"></i> QUẢN LÝ
-            </div>
-            <div class="italic text-gray-500 mb-16">(Ký, ghi rõ họ tên)</div>
-            <div class="w-48 border-t border-dashed border-gray-400 pt-2"></div>
-        </div>
-    </div>
 
-    <!-- Decor Bottom -->
-    <div class="absolute bottom-0 left-0 w-full h-2 flex">
-        <div class="h-full bg-blue-500 w-1/3"></div>
-        <div class="h-full bg-yellow-400 w-1/3"></div>
-        <div class="h-full bg-pink-500 w-1/3"></div>
-    </div>
+        <!-- ================================
+             PRODUCT TABLE
+        ================================= -->
+
+        <section class="product-table-wrap">
+
+            <table>
+
+                <thead>
+                <tr>
+                    <th class="col-stt">STT</th>
+                    <th class="col-product">TÊN SẢN PHẨM</th>
+                    <th class="col-description">QUY CÁCH / MÔ TẢ</th>
+                    <th class="col-quantity">SỐ LƯỢNG</th>
+                    <th class="col-price">ĐƠN GIÁ</th>
+                    <th class="col-total">THÀNH TIỀN</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                @forelse ($order->items as $item)
+                    @php
+                        $product = $item->product;
+                        $lineTotal = (float) $item->quantity * (float) $item->total_unit_price;
+                        $specifications = collect($product?->option ?? [])
+                            ->filter(fn ($value) => filled($value))
+                            ->map(function ($value, $key): string {
+                                $displayValue = is_array($value)
+                                    ? implode(', ', array_filter($value))
+                                    : (string) $value;
+
+                                return is_string($key)
+                                    ? ucfirst(str_replace('_', ' ', $key)) . ': ' . $displayValue
+                                    : $displayValue;
+                            });
+                    @endphp
+                    <tr>
+                        <td class="col-stt">{{ $loop->iteration }}</td>
+
+                        <td class="col-product">
+                            <div class="product-cell">
+                                <span class="product-name">
+                                    {{ $product?->name ?? 'Sản phẩm không còn tồn tại' }}
+                                </span>
+                            </div>
+                        </td>
+
+                        <td class="description">
+                            @if ($product?->sku)
+                                Mã SP: {{ $product->sku }}
+                            @endif
+
+                            @if ($product?->sku && $specifications->isNotEmpty())
+                                <br>
+                            @endif
+
+                            @if ($specifications->isNotEmpty())
+                                {!! $specifications->map(fn ($value) => e($value))->implode('<br>') !!}
+                            @elseif (! $product?->sku)
+                                —
+                            @endif
+                        </td>
+
+                        <td class="col-quantity">
+                            {{ number_format((int) $item->quantity, 0, ',', '.') }}
+                            {{ $product?->unit }}
+                        </td>
+
+                        <td class="col-price money">
+                            {{ number_format((float) $item->total_unit_price, 0, ',', '.') }}
+                        </td>
+
+                        <td class="col-total total-money">
+                            {{ number_format($lineTotal, 0, ',', '.') }}
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="6" style="text-align: center;">
+                            Đơn hàng chưa có sản phẩm.
+                        </td>
+                    </tr>
+                @endforelse
+                </tbody>
+
+            </table>
+
+        </section>
+
+
+        <!-- ================================
+             NOTES / PAYMENT / SUMMARY
+        ================================= -->
+
+        <section class="bottom-grid">
+
+            <!-- NOTES -->
+            <div class="bottom-box note-box">
+
+                <div class="section-heading">
+
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M4 2h12l4 4v16H4z"/>
+                        <path d="M14 2v6h6"
+                              fill="#fff"/>
+                        <path
+                            d="M8 12h8M8 16h8"
+                            stroke="#fff"
+                            stroke-width="1.5"/>
+                    </svg>
+
+                    GHI CHÚ
+                </div>
+
+                <div class="notes">
+
+                    <div class="note-item">
+                        <svg class="check" viewBox="0 0 24 24" fill="currentColor">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="m7 12 3 3 7-7"
+                                  fill="none"
+                                  stroke="#fff"
+                                  stroke-width="2"/>
+                        </svg>
+
+                        <span>
+                            Vui lòng kiểm tra kỹ nội dung,
+                            chính tả trước khi duyệt in.
+                        </span>
+                    </div>
+
+                    <div class="note-item">
+                        <svg class="check" viewBox="0 0 24 24" fill="currentColor">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="m7 12 3 3 7-7"
+                                  fill="none"
+                                  stroke="#fff"
+                                  stroke-width="2"/>
+                        </svg>
+
+                        <span>
+                            Thời gian giao hàng có thể thay đổi
+                            tùy theo khối lượng thực tế.
+                        </span>
+                    </div>
+
+                    <div class="note-item">
+                        <svg class="check" viewBox="0 0 24 24" fill="currentColor">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="m7 12 3 3 7-7"
+                                  fill="none"
+                                  stroke="#fff"
+                                  stroke-width="2"/>
+                        </svg>
+
+                        <span>
+                            Cảm ơn quý khách đã tin tưởng và
+                            sử dụng dịch vụ của chúng tôi!
+                        </span>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- PAYMENT -->
+            <div class="bottom-box payment-box">
+
+                <div class="section-heading">
+                    THÔNG TIN THANH TOÁN
+                </div>
+
+                <div class="payment-content">
+
+                    <img
+                        class="qr"
+                        src="https://placehold.co/200x200/png?text=QR"
+                        alt="QR thanh toán"
+                    >
+
+                    <div class="payment-details">
+
+                        <div>
+                            <span class="label">Ngân hàng</span>
+                            :
+                            Vietcombank
+                        </div>
+
+                        <div>
+                            <span class="label">Số tài khoản</span>
+                            :
+                            1234 5678 9012
+                        </div>
+
+                        <div>
+                            <span class="label">Chủ tài khoản</span>
+                            :
+                            MALIBU PRINT
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- SUMMARY -->
+            <div class="bottom-box summary-box">
+
+                <div class="summary-row">
+                    <span>Tổng tiền hàng</span>
+                    <strong>{{ number_format($subtotal, 0, ',', '.') }}</strong>
+                </div>
+
+                <div class="summary-row">
+                    <span>Chiết khấu</span>
+                    <strong>{{ number_format($discount, 0, ',', '.') }}</strong>
+                </div>
+
+                <div class="summary-total">
+
+                    <div class="summary-total-label">
+                        TỔNG THANH TOÁN
+                    </div>
+
+                    <div class="summary-total-price">
+                        {{ number_format($total, 0, ',', '.') }} VNĐ
+                    </div>
+
+                </div>
+
+                <div class="summary-words">
+                    (Bằng số: {{ number_format($total, 0, ',', '.') }} đồng)
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
 </div>
 
 </body>

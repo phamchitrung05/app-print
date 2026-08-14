@@ -76,14 +76,10 @@ class OrdersForm
 
                         Select::make('payment_method')
                             ->label('Phương thức thanh toán')
-                            ->required()
+                            ->options(config('orders.payment_methods'))
                             ->default('cash')
-                            ->options([
-                                'cash' => 'Tiền mặt',
-                                'bank_transfer' => 'Chuyển khoản',
-                                'card' => 'Thẻ',
-                                'e_wallet' => 'Ví điện tử',
-                            ]),
+                            ->selectablePlaceholder(false)
+                            ->required(),
 
                         TextInput::make('address')
                             ->label('Địa chỉ')

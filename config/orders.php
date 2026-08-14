@@ -12,9 +12,33 @@ return [
     */
     'statuses' => [
         'new' => 'Mới tạo',
-        'confirmed' => 'Đã xác nhận',
         'processing' => 'Đang xử lý',
         'completed' => 'Hoàn thành',
-        'cancelled' => 'Đã hủy',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Order payment methods
+    |--------------------------------------------------------------------------
+    |
+    | Danh sách phương thức thanh toán được phép sử dụng cho đơn hàng.
+    |
+    */
+    'payment_methods' => [
+        'cash' => 'Tiền mặt',
+        'bank_transfer' => 'Chuyển khoản',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Payment statuses
+    |--------------------------------------------------------------------------
+    |
+    | Danh sách trạng thái xác nhận của các lần thanh toán.
+    |
+    */
+    'payment_statuses' => [
+        'pending' => 'Chưa thanh toán',
+        'confirmed' => 'Đã thanh toán',
     ],
 ];

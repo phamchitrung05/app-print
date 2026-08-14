@@ -44,6 +44,7 @@ class OrdersTable
                 SelectColumn::make('status')
                     ->label('Trạng thái')
                     ->options(config('orders.statuses'))
+                    ->disabled(fn ($record): bool => $record?->status === 'completed')
                     ->sortable(),
 
                 TextColumn::make('payment_method')
