@@ -47,15 +47,21 @@ class ProductsTable
                     ->searchable()
                     ->sortable(),
 
-                TextColumn::make('price')
+                TextColumn::make('skus')
                     ->label('Giá')
-                    ->money('VND', locale: 'vi')
-                    ->sortable(),
-
-                TextColumn::make('stock_quantity')
-                    ->label('Tồn kho')
-                    ->numeric(locale: 'vi')
-                    ->sortable(),
+                    ->getStateUsing(fn (Product $record): string => $record->skus
+                        ->map(fn ($sku): string => sprintf(
+                            '%s - %s',
+                            $sku->sku,
+                            number_format((float) $sku->price, 0, ',', '.') . ' ₫',
+                        ))
+                        ->implode(', '))
+                    ->wrap()
+                    ->searchable(query: function ($query, string $search): void {
+                        $query->whereHas('skus', function ($skuQuery) use ($search): void {
+                            $skuQuery->where('sku', 'like', "%{$search}%");
+                        });
+                    }),
 
                 IconColumn::make('is_active')
                     ->label('Hoạt động')
@@ -110,11 +116,6 @@ class ProductsTable
                     ->using(function (Product $record, array $data): Product {
                         $productSkus = $data['product_skus'] ?? [];
                         unset($data['product_skus']);
-
-                        $firstSku = collect($productSkus)->first(fn ($skuData): bool => is_array($skuData));
-
-                        $data['price'] = (float) ($firstSku['price'] ?? 0);
-                        $data['stock_quantity'] = (int) ($firstSku['stock'] ?? 0);
 
                         $record->update($data);
                         $record->skus()->delete();
