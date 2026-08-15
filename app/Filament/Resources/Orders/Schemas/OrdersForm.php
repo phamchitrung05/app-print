@@ -163,8 +163,9 @@ class OrdersForm
                                             })
                                             ->mapWithKeys(fn (Product $product): array => [
                                                 $product->id => $product->name . (
-                                                    $product->skus->every(
-                                                        fn (ProductSKU $sku): bool => (int) $sku->stock <= 0
+                                                    ! $product->skus->contains(
+                                                        fn (ProductSKU $sku): bool => (int) $sku->stock > 0
+                                                            && ! $selectedSkuIds->contains($sku->id)
                                                     )
                                                         ? ' -- Đã hết hàng'
                                                         : ''
@@ -172,12 +173,22 @@ class OrdersForm
                                             ])
                                             ->all();
                                     })
-                                    ->disableOptionWhen(
-                                        fn (string $value): bool => ! ProductSKU::query()
+                                    ->disableOptionWhen(function (string $value, Get $get): bool {
+                                        $selectedSkuIds = collect($get('../../items') ?? [])
+                                            ->pluck('product_sku_id')
+                                            ->filter()
+                                            ->map(fn ($id): int => (int) $id)
+                                            ->reject(
+                                                fn (int $id): bool => $id === (int) ($get('product_sku_id') ?? 0)
+                                            )
+                                            ->values();
+
+                                        return ! ProductSKU::query()
                                             ->where('product_id', $value)
                                             ->where('stock', '>', 0)
-                                            ->exists()
-                                    )
+                                            ->whereNotIn('id', $selectedSkuIds)
+                                            ->exists();
+                                    })
                                     ->searchable()
                                     ->preload()
                                     ->required()
