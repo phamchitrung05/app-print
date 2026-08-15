@@ -77,6 +77,11 @@ class Orders extends Model
             }
         });
 
+        static::deleting(function (Orders $order): void {
+            $order->payments()->delete();
+            $order->shipping()->delete();
+        });
+
         static::deleted(function (Orders $order): void {
             self::syncCustomerLastOrder((int) $order->customer_id);
         });
