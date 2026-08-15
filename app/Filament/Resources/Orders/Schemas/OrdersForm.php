@@ -119,11 +119,11 @@ class OrdersForm
                             ->relationship()
                             ->table([
                                 TableColumn::make('Sản phẩm')
-                                    ->width('40%')
+                                    ->width('35%')
                                     ->markAsRequired(),
 
                                 TableColumn::make('SKU')
-                                    ->width('20%')
+                                    ->width('25%')
                                     ->markAsRequired(),
 
                                 TableColumn::make('Số lượng')
