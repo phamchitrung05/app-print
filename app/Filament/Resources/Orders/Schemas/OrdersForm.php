@@ -161,9 +161,23 @@ class OrdersForm
                                                         fn (ProductSKU $sku): bool => ! $selectedSkuIds->contains($sku->id)
                                                     );
                                             })
-                                            ->pluck('name', 'id')
+                                            ->mapWithKeys(fn (Product $product): array => [
+                                                $product->id => $product->name . (
+                                                    $product->skus->every(
+                                                        fn (ProductSKU $sku): bool => (int) $sku->stock <= 0
+                                                    )
+                                                        ? ' -- Đã hết hàng'
+                                                        : ''
+                                                ),
+                                            ])
                                             ->all();
                                     })
+                                    ->disableOptionWhen(
+                                        fn (string $value): bool => ! ProductSKU::query()
+                                            ->where('product_id', $value)
+                                            ->where('stock', '>', 0)
+                                            ->exists()
+                                    )
                                     ->searchable()
                                     ->preload()
                                     ->required()
@@ -188,6 +202,7 @@ class OrdersForm
 
                                         $firstSku = ProductSKU::query()
                                             ->where('product_id', $state)
+                                            ->where('stock', '>', 0)
                                             ->whereNotIn('id', $selectedSkuIds)
                                             ->orderBy('sku')
                                             ->first();
@@ -212,9 +227,21 @@ class OrdersForm
                                             ->where('product_id', $get('product_id'))
                                             ->whereNotIn('id', $selectedSkuIds)
                                             ->orderBy('sku')
-                                            ->pluck('sku', 'id')
+                                            ->get()
+                                            ->mapWithKeys(fn (ProductSKU $sku): array => [
+                                                $sku->id => $sku->sku . (
+                                                    (int) $sku->stock <= 0
+                                                        ? ' -- Đã hết hàng'
+                                                        : " -- {$sku->stock}"
+                                                ),
+                                            ])
                                             ->all();
                                     })
+                                    ->disableOptionWhen(
+                                        fn (string $value): bool => (int) ProductSKU::query()
+                                            ->whereKey($value)
+                                            ->value('stock') <= 0
+                                    )
                                     ->searchable()
                                     ->preload()
                                     ->required()

@@ -13,6 +13,7 @@ use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
+use Illuminate\Support\HtmlString;
 
 class ProductsTable
 {
@@ -50,13 +51,17 @@ class ProductsTable
                 TextColumn::make('skus')
                     ->label('Giá')
                     ->getStateUsing(fn (Product $record): array => $record->skus
-                        ->map(fn ($sku): string => sprintf(
-                            '%s - %s',
-                            $sku->sku,
+                        ->map(fn ($sku): HtmlString => new HtmlString(sprintf(
+                            '<span class="%s">%s - %s</span>',
+                            (int) $sku->stock === 0
+                                ? 'text-danger-600 font-bold'
+                                : 'text-info-600 font-bold',
+                            e($sku->sku),
                             number_format((float) $sku->price, 0, ',', '.') . ' ₫',
-                        ))
+                        )))
                         ->all())
                     ->listWithLineBreaks()
+                    ->html()
                     ->wrap()
                     ->searchable(query: function ($query, string $search): void {
                         $query->whereHas('skus', function ($skuQuery) use ($search): void {

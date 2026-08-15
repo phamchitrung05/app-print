@@ -14,6 +14,7 @@ use Filament\Resources\Pages\Page;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
 use Illuminate\Support\Carbon;
@@ -87,6 +88,20 @@ class ProductStock extends Page implements HasTable
                     ->dateTime('d/m/Y H:i')
                     ->sortable(),
             ])
+            ->filters([
+                TernaryFilter::make('stock_status')
+                    ->label('Trạng thái tồn kho')
+                    ->placeholder('Tất cả SKU')
+                    ->trueLabel('Hết hàng')
+                    ->falseLabel('Còn hàng')
+                    ->queries(
+                        true: fn ($query) => $query->where('stock', 0),
+                        false: fn ($query) => $query->where('stock', '>', 0),
+                    ),
+            ])
+            ->recordClasses(fn (ProductSKU $record): string => (int) $record->stock === 0
+                ? 'bg-danger-50 dark:bg-danger-950/20'
+                : '')
             ->recordActions([
                 Action::make('statistics')
                     ->label('Thống kê')
