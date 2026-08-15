@@ -34,6 +34,8 @@ class AdminPanelProvider extends PanelProvider
             ->navigationGroups([
                 'Shop',
                 'Customer',
+                'Payment',
+                'Hệ thống',
             ])
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([])
