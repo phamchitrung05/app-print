@@ -6,15 +6,15 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        Schema::create('products', function (Blueprint $table) {
+        Schema::create('products', function (Blueprint $table): void {
             $table->id();
+            $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
             $table->uuid('uuid')->unique();
+            $table->string('sku')->nullable()->unique();
             $table->string('name');
+            $table->string('product_type')->default('in_ly');
             $table->string('unit');
             $table->decimal('price', 15, 2);
             $table->unsignedInteger('stock_quantity')->default(0);
@@ -25,9 +25,6 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('products');

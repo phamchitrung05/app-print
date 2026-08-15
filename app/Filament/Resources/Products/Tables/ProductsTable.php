@@ -36,12 +36,6 @@ class ProductsTable
                     ->badge()
                     ->sortable(),
 
-                TextColumn::make('sku')
-                    ->label('SKU')
-                    ->searchable()
-                    ->sortable()
-                    ->copyable(),
-
                 TextColumn::make('uuid')
                     ->label('UUID')
                     ->searchable()
@@ -95,6 +89,14 @@ class ProductsTable
                     ->tooltip('Chỉnh sửa')
                     ->modalHeading(fn ($record): string => "Chỉnh sửa sản phẩm: {$record->name}")
                     ->fillForm(fn (Product $record): array => [
+                        ...$record->only([
+                            'name',
+                            'product_type',
+                            'uuid',
+                            'unit',
+                            'is_active',
+                            'internal_note',
+                        ]),
                         'product_skus' => $record->skus()
                             ->get()
                             ->map(fn ($sku): array => [

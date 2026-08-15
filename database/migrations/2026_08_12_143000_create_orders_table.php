@@ -6,12 +6,9 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        Schema::create('orders', function (Blueprint $table) {
+        Schema::create('orders', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('customer_id')
                 ->nullable()
@@ -19,20 +16,18 @@ return new class extends Migration
                 ->cascadeOnUpdate()
                 ->nullOnDelete();
             $table->uuid('uuid')->nullable()->unique();
+            $table->string('code', 5)->nullable()->unique();
             $table->dateTime('ordered_at')->nullable();
             $table->string('status', 50)->default('new');
-            $table->string('payment_method', 50)->default('cash');
+            $table->decimal('total_price', 15, 2)->default(0);
+            $table->decimal('discount', 15, 2)->default(0);
             $table->text('note')->nullable();
-
             $table->index(['customer_id', 'ordered_at']);
             $table->index('status');
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('orders');

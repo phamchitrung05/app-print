@@ -17,12 +17,9 @@ class Product extends Model
     protected $fillable = [
         'user_id',
         'uuid',
-        'sku',
         'name',
         'product_type',
         'unit',
-        'price',
-        'stock_quantity',
         'is_active',
         'option',
         'internal_note',
@@ -31,8 +28,6 @@ class Product extends Model
     protected function casts(): array
     {
         return [
-            'price' => 'decimal:2',
-            'stock_quantity' => 'integer',
             'is_active' => 'boolean',
             'option' => 'array',
         ];

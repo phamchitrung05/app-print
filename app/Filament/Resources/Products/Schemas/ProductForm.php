@@ -85,7 +85,7 @@ class ProductForm
                                                     ->default(0)
                                                     ->placeholder('Nhập số lượng tồn kho'),
                                             ])
-                                            ->columns(2)
+                                            ->columns(3)
                                             ->addActionLabel('Thêm SKU')
                                             ->reorderable()
                                             ->defaultItems(1)

@@ -6,12 +6,9 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        Schema::create('customers', function (Blueprint $table) {
+        Schema::create('customers', function (Blueprint $table): void {
             $table->id();
             $table->uuid('uuid')->unique();
             $table->string('name');
@@ -20,13 +17,11 @@ return new class extends Migration
             $table->text('note')->nullable();
             $table->boolean('is_active')->default(true);
             $table->json('option')->nullable();
+            $table->dateTime('last_order')->nullable();
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('customers');

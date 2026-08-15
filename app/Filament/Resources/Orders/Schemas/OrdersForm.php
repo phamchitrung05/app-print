@@ -141,10 +141,29 @@ class OrdersForm
                                 Select::make('product_id')
                                     ->label('Sản phẩm')
                                     ->dehydrated(false)
-                                    ->options(fn (): array => Product::query()
-                                        ->orderBy('name')
-                                        ->pluck('name', 'id')
-                                        ->all())
+                                    ->options(function (Get $get): array {
+                                        $items = $get('../../items') ?? [];
+                                        $currentProductId = $get('product_id');
+                                        $selectedSkuIds = collect($items)
+                                            ->pluck('product_sku_id')
+                                            ->filter()
+                                            ->map(fn ($id): int => (int) $id)
+                                            ->reject(fn (int $id): bool => $id === (int) ($get('product_sku_id') ?? 0))
+                                            ->values();
+
+                                        return Product::query()
+                                            ->with('skus')
+                                            ->orderBy('name')
+                                            ->get()
+                                            ->filter(function (Product $product) use ($selectedSkuIds, $currentProductId): bool {
+                                                return (string) $product->id === (string) $currentProductId
+                                                    || $product->skus->contains(
+                                                        fn (ProductSKU $sku): bool => ! $selectedSkuIds->contains($sku->id)
+                                                    );
+                                            })
+                                            ->pluck('name', 'id')
+                                            ->all();
+                                    })
                                     ->searchable()
                                     ->preload()
                                     ->required()
@@ -158,18 +177,44 @@ class OrdersForm
                                             );
                                         }
                                     })
-                                    ->afterStateUpdated(function (?string $state, Set $set): void {
-                                        $set('product_sku_id', null);
-                                        $set('total_unit_price', Product::find($state)?->price ?? 0);
+                                    ->afterStateUpdated(function (?string $state, Set $set, Get $get): void {
+                                        $items = $get('../../items') ?? [];
+                                        $selectedSkuIds = collect($items)
+                                            ->pluck('product_sku_id')
+                                            ->filter()
+                                            ->map(fn ($id): int => (int) $id)
+                                            ->reject(fn (int $id): bool => $id === (int) ($get('product_sku_id') ?? 0))
+                                            ->values();
+
+                                        $firstSku = ProductSKU::query()
+                                            ->where('product_id', $state)
+                                            ->whereNotIn('id', $selectedSkuIds)
+                                            ->orderBy('sku')
+                                            ->first();
+
+                                        $set('product_sku_id', $firstSku?->id);
+                                        $set('total_unit_price', $firstSku?->price ?? 0);
                                     }),
 
                                 Select::make('product_sku_id')
                                     ->label('SKU')
-                                    ->options(fn (Get $get): array => ProductSKU::query()
-                                        ->where('product_id', $get('product_id'))
-                                        ->orderBy('sku')
-                                        ->pluck('sku', 'id')
-                                        ->all())
+                                    ->options(function (Get $get): array {
+                                        $items = $get('../../items') ?? [];
+                                        $currentSkuId = (int) ($get('product_sku_id') ?? 0);
+                                        $selectedSkuIds = collect($items)
+                                            ->pluck('product_sku_id')
+                                            ->filter()
+                                            ->map(fn ($id): int => (int) $id)
+                                            ->reject(fn (int $id): bool => $id === $currentSkuId)
+                                            ->values();
+
+                                        return ProductSKU::query()
+                                            ->where('product_id', $get('product_id'))
+                                            ->whereNotIn('id', $selectedSkuIds)
+                                            ->orderBy('sku')
+                                            ->pluck('sku', 'id')
+                                            ->all();
+                                    })
                                     ->searchable()
                                     ->preload()
                                     ->required()

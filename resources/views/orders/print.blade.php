@@ -991,12 +991,6 @@
                     </div>
 
                     <div class="info-row">
-                        <span class="info-label">Email</span>
-                        <span>:</span>
-                        <span>—</span>
-                    </div>
-
-                    <div class="info-row">
                         <span class="info-label">Mã số thuế</span>
                         <span>:</span>
                         <span>—</span>
@@ -1101,25 +1095,16 @@
                                 <span class="product-name">
                                     {{ $product?->name ?? 'Sản phẩm không còn tồn tại' }}
                                 </span>
-                                <span class="product-sku">
-                                    SKU: {{ $productSku?->sku ?? '—' }}
-                                </span>
                             </div>
                         </td>
 
                         <td class="description">
-                            @if ($product?->sku)
-                                Mã SP: {{ $product->sku }}
-                            @endif
-
-                            @if ($product?->sku && $specifications->isNotEmpty())
-                                <br>
-                            @endif
+                            <div>SKU: {{ $productSku?->sku ?? '—' }}</div>
 
                             @if ($specifications->isNotEmpty())
-                                {!! $specifications->map(fn ($value) => e($value))->implode('<br>') !!}
-                            @elseif (! $product?->sku)
-                                —
+                                <div>
+                                    {!! $specifications->map(fn ($value) => e($value))->implode('<br>') !!}
+                                </div>
                             @endif
                         </td>
 
