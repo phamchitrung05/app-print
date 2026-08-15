@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\InventoryService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -34,6 +35,12 @@ class Payment extends Model
 
             $payment->confirmed_at = null;
             $payment->confirmed_by = null;
+        });
+
+        static::updated(function (Payment $payment): void {
+            if ($payment->wasChanged('payment_status') && $payment->payment_status === 'confirmed') {
+                InventoryService::deductForOrder($payment->order_id);
+            }
         });
     }
 

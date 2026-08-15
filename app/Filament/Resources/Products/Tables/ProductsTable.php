@@ -93,7 +93,6 @@ class ProductsTable
             ->recordActions([
                 EditAction::make()
                     ->iconButton()
-                    ->tooltip('Chỉnh sửa')
                     ->modalHeading(fn ($record): string => "Chỉnh sửa sản phẩm: {$record->name}")
                     ->fillForm(fn (Product $record): array => [
                         ...$record->only([
@@ -144,8 +143,7 @@ class ProductsTable
                     ->modalWidth('7xl'),
 
                 DeleteAction::make()
-                    ->iconButton()
-                    ->tooltip('Xóa sản phẩm'),
+                    ->iconButton(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

@@ -49,8 +49,7 @@ class UsersTable
             ->defaultSort('created_at', 'desc')
             ->recordActions([
                 EditAction::make()
-                    ->iconButton()
-                    ->tooltip('Chỉnh sửa'),
+                    ->iconButton(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

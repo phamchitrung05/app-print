@@ -33,7 +33,6 @@ class CustomersTable
                 TextColumn::make('address')
                     ->label('Địa chỉ')
                     ->limit(40)
-                    ->tooltip(fn (?string $state): ?string => $state)
                     ->toggleable(),
 
                 TextColumn::make('last_order')
@@ -75,7 +74,6 @@ class CustomersTable
             ->recordActions([
                 ViewAction::make()
                     ->iconButton()
-                    ->tooltip('Xem chi tiết')
                     ->modalHeading(fn ($record): string => "Thông tin khách hàng: {$record->name}")
                     ->schema(fn (Schema $schema): Schema => CustomerForm::configure($schema))
                     ->modalContentFooter(
@@ -88,7 +86,6 @@ class CustomersTable
 
                 EditAction::make()
                     ->iconButton()
-                    ->tooltip('Chỉnh sửa')
                     ->modalHeading(fn ($record): string => "Chỉnh sửa khách hàng: {$record->name}")
                     ->schema(fn (Schema $schema): Schema => CustomerForm::configure($schema))
                     ->modalWidth('7xl'),

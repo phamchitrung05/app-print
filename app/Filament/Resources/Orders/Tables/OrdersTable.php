@@ -160,8 +160,7 @@ class OrdersTable
                     ->openUrlInNewTab(),
 
                 DeleteAction::make()
-                    ->iconButton()
-                    ->tooltip('Xóa đơn hàng'),
+                    ->iconButton(),
             ], RecordActionsPosition::BeforeColumns)
             ->toolbarActions([
                 BulkActionGroup::make([

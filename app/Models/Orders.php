@@ -25,12 +25,14 @@ class Orders extends Model
         'total_price',
         'discount',
         'note',
+        'inventory_deducted_at',
     ];
 
     protected function casts(): array
     {
         return [
             'ordered_at' => 'datetime',
+            'inventory_deducted_at' => 'datetime',
             'total_price' => 'decimal:2',
             'discount' => 'decimal:2',
         ];

@@ -92,14 +92,6 @@ class MonthlyOrders extends ChartWidget
                         'padding' => 20,
                     ],
                 ],
-                'tooltip' => [
-                    'backgroundColor' => '#111827',
-                    'titleColor' => '#ffffff',
-                    'bodyColor' => '#ffffff',
-                    'padding' => 12,
-                    'cornerRadius' => 8,
-                    'displayColors' => false,
-                ],
             ],
             'scales' => [
                 'x' => [

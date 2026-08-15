@@ -20,8 +20,7 @@ class OrderItemsTable
             ])
             ->recordActions([
                 EditAction::make()
-                    ->iconButton()
-                    ->tooltip('Chỉnh sửa'),
+                    ->iconButton(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
