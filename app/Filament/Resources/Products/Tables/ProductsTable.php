@@ -49,13 +49,14 @@ class ProductsTable
 
                 TextColumn::make('skus')
                     ->label('Giá')
-                    ->getStateUsing(fn (Product $record): string => $record->skus
+                    ->getStateUsing(fn (Product $record): array => $record->skus
                         ->map(fn ($sku): string => sprintf(
                             '%s - %s',
                             $sku->sku,
                             number_format((float) $sku->price, 0, ',', '.') . ' ₫',
                         ))
-                        ->implode(', '))
+                        ->all())
+                    ->listWithLineBreaks()
                     ->wrap()
                     ->searchable(query: function ($query, string $search): void {
                         $query->whereHas('skus', function ($skuQuery) use ($search): void {
