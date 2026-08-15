@@ -32,7 +32,7 @@
                 @forelse ($record->orders()->with('items.product')->orderByDesc('ordered_at')->get() as $order)
                     <tr x-data="{ orderDetailsOpen: false }" class="bg-white dark:bg-gray-900">
                         <td class="px-4 py-3 font-medium text-gray-950 dark:text-white">
-                            {{ $order->uuid }}
+                            {{ $order->code }}
                         </td>
                         <td class="px-4 py-3 text-gray-600 dark:text-gray-400">
                             {{ $order->ordered_at?->format('d/m/Y H:i') ?? '—' }}
@@ -45,7 +45,7 @@
                                 type="button"
                                 x-on:click="orderDetailsOpen = true"
                                 title="Xem sản phẩm trong đơn hàng"
-                                aria-label="Xem sản phẩm trong đơn hàng {{ $order->uuid }}"
+                                aria-label="Xem sản phẩm trong đơn hàng {{ $order->code }}"
                                 class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-primary-600 transition hover:bg-primary-50 hover:text-primary-700 focus:outline-none dark:text-primary-400 dark:hover:bg-white/5"
                             >
                                 <svg
@@ -78,7 +78,7 @@
                                     class="fixed inset-0 z-[100] overflow-y-auto"
                                     role="dialog"
                                     aria-modal="true"
-                                    aria-label="Chi tiết sản phẩm đơn hàng {{ $order->uuid }}"
+                                    aria-label="Chi tiết sản phẩm đơn hàng {{ $order->code }}"
                                 >
                                     <div
                                         x-show="orderDetailsOpen"
@@ -100,7 +100,7 @@
                                                         Sản phẩm trong đơn hàng
                                                     </h3>
                                                     <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                                                        {{ $order->uuid }}
+                                                        {{ $order->code }}
                                                     </p>
                                                 </div>
 

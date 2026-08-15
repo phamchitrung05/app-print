@@ -31,11 +31,14 @@ class OrdersForm
                     ->icon(Heroicon::OutlinedClipboardDocumentList)
                     ->schema([
                         TextInput::make('uuid')
-                            ->label('Mã đơn hàng')
                             ->default(fn (): string => (string) Str::uuid())
-                            ->disabled()
-                            ->dehydrated()
-                            ->helperText('Mã định danh duy nhất được hệ thống tự động tạo.'),
+                            ->hidden()
+                            ->dehydrated(),
+
+                        Placeholder::make('code')
+                            ->label('Mã đơn hàng')
+                            ->content(fn (?Orders $record): string => $record?->code ?? 'Tự động sau khi lưu')
+                            ->helperText('Mã gồm 5 chữ số, được hệ thống tự động tạo theo thứ tự đơn hàng.'),
 
                         DateTimePicker::make('ordered_at')
                             ->label('Ngày đặt hàng')

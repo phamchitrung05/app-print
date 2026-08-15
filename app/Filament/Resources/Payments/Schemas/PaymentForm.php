@@ -17,7 +17,7 @@ class PaymentForm
                     ->schema([
                         Select::make('order_id')
                             ->label('Đơn hàng')
-                            ->relationship('order', 'uuid')
+                            ->relationship('order', 'code')
                             ->searchable()
                             ->preload()
                             ->required(),

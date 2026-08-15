@@ -104,7 +104,7 @@ class PaymentsTable
                     ->color('info')
                     ->iconButton()
                     ->modalHeading(
-                        fn (Payment $record): string => "Chi tiết đơn hàng: {$record->order->uuid}"
+                        fn (Payment $record): string => "Chi tiết đơn hàng: {$record->order->code}"
                     )
                     ->modalContent(function (Payment $record): View {
                         $order = $record->order;

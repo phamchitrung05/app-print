@@ -39,7 +39,7 @@
             <dl class="space-y-4">
                 <div>
                     <dt class="text-sm text-gray-500 dark:text-gray-400">Mã đơn hàng</dt>
-                    <dd class="mt-1 font-semibold text-primary-600 dark:text-primary-400">{{ $order->uuid }}</dd>
+                    <dd class="mt-1 font-semibold text-primary-600 dark:text-primary-400">{{ $order->code }}</dd>
                 </div>
                 <div>
                     <dt class="text-sm text-gray-500 dark:text-gray-400">Khách hàng</dt>

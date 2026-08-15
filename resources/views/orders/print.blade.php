@@ -8,7 +8,7 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>Đơn hàng {{ $order->uuid }} - Malibu Print</title>
+    <title>Đơn hàng {{ $order->code }} - Malibu Print</title>
 
     <!-- Tailwind CSS 4 -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
@@ -893,7 +893,7 @@
                 </div>
 
                 <div class="order-code">
-                    #{{ $order->uuid }}
+                    #{{ $order->code }}
                 </div>
 
                 <div class="order-meta">

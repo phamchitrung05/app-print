@@ -17,6 +17,7 @@ class Orders extends Model
     protected $fillable = [
         'customer_id',
         'uuid',
+        'code',
         'ordered_at',
         'status',
         'payment_method',
@@ -37,6 +38,12 @@ class Orders extends Model
     protected static function booted(): void
     {
         static::created(function (Orders $order): void {
+            if ($order->code === null) {
+                $order->forceFill([
+                    'code' => str_pad((string) $order->getKey(), 5, '0', STR_PAD_LEFT),
+                ])->saveQuietly();
+            }
+
             Customer::query()
                 ->whereKey($order->customer_id)
                 ->update(['last_order' => $order->ordered_at]);

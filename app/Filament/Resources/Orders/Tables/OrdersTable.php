@@ -32,6 +32,12 @@ class OrdersTable
             )
             ->defaultSort('ordered_at', 'desc')
             ->columns([
+                TextColumn::make('code')
+                    ->label('Mã đơn hàng')
+                    ->searchable()
+                    ->sortable()
+                    ->copyable(),
+
                 TextColumn::make('customer.name')
                     ->label('Khách hàng')
                     ->searchable()
@@ -98,7 +104,7 @@ class OrdersTable
             ->recordActions([
                 ViewAction::make()
                     ->iconButton()
-                    ->modalHeading(fn ($record): string => "Chi tiết đơn hàng: {$record->uuid}")
+                    ->modalHeading(fn ($record): string => "Chi tiết đơn hàng: {$record->code}")
                     ->schema(fn (Schema $schema): Schema => OrdersForm::configure($schema))
                     ->modalWidth('7xl'),
 
@@ -118,6 +124,7 @@ class OrdersTable
                         DB::transaction(function () use ($record): void {
                             $newOrder = $record->replicate([
                                 'uuid',
+                                'code',
                                 'ordered_at',
                                 'status',
                                 'created_at',
@@ -125,6 +132,7 @@ class OrdersTable
                             ]);
 
                             $newOrder->uuid = (string) Str::uuid();
+                            $newOrder->code = null;
                             $newOrder->ordered_at = now();
                             $newOrder->status = 'new';
                             $newOrder->save();

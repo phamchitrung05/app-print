@@ -30,7 +30,7 @@ class OrdersResource extends Resource
 
     protected static ?string $pluralModelLabel = 'đơn hàng';
 
-    protected static ?string $recordTitleAttribute = 'uuid';
+    protected static ?string $recordTitleAttribute = 'code';
 
     public static function form(Schema $schema): Schema
     {

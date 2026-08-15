@@ -25,9 +25,10 @@ class IncompleteOrdersTable extends TableWidget
             )
             ->defaultSort('ordered_at', 'desc')
             ->columns([
-                TextColumn::make('uuid')
+                TextColumn::make('code')
                     ->label('Mã đơn hàng')
                     ->searchable()
+                    ->sortable()
                     ->copyable(),
 
                 TextColumn::make('customer.name')
@@ -68,7 +69,7 @@ class IncompleteOrdersTable extends TableWidget
             ->recordActions([
                 ViewAction::make()
                     ->iconButton()
-                    ->modalHeading(fn (Orders $record): string => "Chi tiết đơn hàng: {$record->uuid}")
+                    ->modalHeading(fn (Orders $record): string => "Chi tiết đơn hàng: {$record->code}")
                     ->schema(fn (Schema $schema): Schema => OrdersForm::configure($schema))
                     ->modalWidth('7xl'),
             ])
