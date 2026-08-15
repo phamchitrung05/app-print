@@ -6,6 +6,7 @@ use App\Models\Customer;
 use App\Models\OrderItem;
 use App\Models\Orders;
 use App\Models\Product;
+use App\Models\ProductSKU;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -20,6 +21,7 @@ class DatabaseSeeder extends Seeder
         DB::transaction(function (): void {
             OrderItem::query()->delete();
             Orders::query()->delete();
+            ProductSKU::query()->delete();
             Product::query()->delete();
             Customer::query()->delete();
 
@@ -36,20 +38,32 @@ class DatabaseSeeder extends Seeder
                 ]),
             );
 
+            $productSkus = $products->values()->map(
+                fn (Product $product, int $index): ProductSKU => ProductSKU::factory()->create([
+                    'product_id' => $product->id,
+                    'sku' => sprintf('SKU-%05d', $index + 1),
+                ]),
+            );
+
             $orders = $customers->values()->map(
                 fn (Customer $customer): Orders => Orders::factory()->create([
                     'customer_id' => $customer->id,
                 ]),
             );
 
-            $orders->each(function (Orders $order, int $index) use ($products): void {
-                $item = OrderItem::factory()->create([
+            $orders->each(function (Orders $order, int $index) use ($productSkus): void {
+                $productSku = $productSkus[$index];
+                $quantity = fake()->numberBetween(1, 10);
+
+                OrderItem::factory()->create([
                     'order_id' => $order->id,
-                    'product_id' => $products[$index]->id,
+                    'product_sku_id' => $productSku->id,
+                    'quantity' => $quantity,
+                    'total_unit_price' => $productSku->price,
                 ]);
 
                 $order->update([
-                    'total_price' => $item->quantity * $item->total_unit_price,
+                    'total_price' => ($quantity * (float) $productSku->price) - (float) $order->discount,
                 ]);
             });
         });

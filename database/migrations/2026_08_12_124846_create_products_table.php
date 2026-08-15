@@ -12,12 +12,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
             $table->uuid('uuid')->unique();
-            $table->string('sku')->nullable()->unique();
             $table->string('name');
             $table->string('product_type')->default('in_ly');
             $table->string('unit');
-            $table->decimal('price', 15, 2);
-            $table->unsignedInteger('stock_quantity')->default(0);
             $table->boolean('is_active')->default(true);
             $table->json('option')->nullable();
             $table->text('internal_note')->nullable();

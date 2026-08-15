@@ -22,9 +22,8 @@ class ProductFactory extends Factory
             'user_id' => null,
             'uuid' => (string) Str::uuid(),
             'name' => fake('vi_VN')->words(3, true),
+            'product_type' => fake()->randomElement(['in_ly', 'dong_goi']),
             'unit' => fake('vi_VN')->randomElement(['Cái', 'Hộp', 'Kg', 'Chai', 'Gói']),
-            'price' => fake()->randomFloat(2, 10000, 1000000),
-            'stock_quantity' => fake()->numberBetween(0, 500),
             'is_active' => fake()->boolean(90),
             'option' => [
                 'brand' => fake()->company(),
