@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Orders\Tables;
 use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
@@ -29,9 +30,11 @@ class OrdersTable
     {
         return $table
             ->modifyQueryUsing(
-                fn (Builder $query): Builder => $query->with(['customer', 'items'])
+                fn (Builder $query): Builder => $query
+                    ->with(['customer', 'items'])
+                    ->orderByRaw("CASE WHEN status = 'completed' THEN 1 ELSE 0 END")
+                    ->orderByDesc('ordered_at')
             )
-            ->defaultSort('ordered_at', 'desc')
             ->columns([
                 TextColumn::make('code')
                     ->label('Mã đơn hàng')
@@ -141,7 +144,7 @@ class OrdersTable
 
                             foreach ($record->items as $item) {
                                 $newOrder->items()->create([
-                                    'product_id' => $item->product_id,
+                                    'product_sku_id' => $item->product_sku_id,
                                     'quantity' => $item->quantity,
                                     'total_unit_price' => $item->total_unit_price,
                                 ]);
@@ -155,6 +158,10 @@ class OrdersTable
                     ->iconButton()
                     ->url(fn ($record): string => route('orders.print', $record))
                     ->openUrlInNewTab(),
+
+                DeleteAction::make()
+                    ->iconButton()
+                    ->tooltip('Xóa đơn hàng'),
             ], RecordActionsPosition::BeforeColumns)
             ->toolbarActions([
                 BulkActionGroup::make([

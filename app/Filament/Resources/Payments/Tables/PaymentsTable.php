@@ -20,12 +20,21 @@ class PaymentsTable
     {
         return $table
             ->modifyQueryUsing(
-                fn (Builder $query): Builder => $query->with([
-                    'order.customer',
-                    'confirmedBy',
-                ])
+                fn (Builder $query): Builder => $query
+                    ->with([
+                        'order.customer',
+                        'confirmedBy',
+                    ])
+                    ->orderByRaw("CASE WHEN payment_status = 'confirmed' THEN 1 ELSE 0 END")
+                    ->orderByDesc('created_at')
             )
             ->columns([
+                TextColumn::make('order.code')
+                    ->label('Mã đơn hàng')
+                    ->searchable()
+                    ->sortable()
+                    ->copyable(),
+
                 TextColumn::make('order.customer.name')
                     ->label('Khách hàng')
                     ->searchable()
@@ -92,11 +101,16 @@ class PaymentsTable
                     ->sortable(),
             ])
             ->filters([
+                SelectFilter::make('customer_id')
+                    ->label('Khách hàng')
+                    ->relationship('order.customer', 'name')
+                    ->searchable()
+                    ->preload(),
+
                 SelectFilter::make('payment_status')
                     ->label('Trạng thái thanh toán')
                     ->options(config('orders.payment_statuses')),
             ])
-            ->defaultSort('created_at', 'desc')
             ->recordActions([
                 Action::make('viewOrder')
                     ->label('Xem')
@@ -108,7 +122,7 @@ class PaymentsTable
                     )
                     ->modalContent(function (Payment $record): View {
                         $order = $record->order;
-                        $order->loadMissing(['customer', 'items.product']);
+                        $order->loadMissing(['customer', 'items.productSku.product']);
 
                         return view('filament.payments.order-details', compact('order'));
                     })

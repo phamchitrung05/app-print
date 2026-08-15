@@ -4,9 +4,9 @@ namespace App\Models;
 
 use Database\Factories\ProductFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
 class Product extends Model
@@ -19,6 +19,7 @@ class Product extends Model
         'uuid',
         'sku',
         'name',
+        'product_type',
         'unit',
         'price',
         'stock_quantity',
@@ -45,5 +46,10 @@ class Product extends Model
     public function orderItems(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function skus(): HasMany
+    {
+        return $this->hasMany(ProductSKU::class);
     }
 }

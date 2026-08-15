@@ -1078,7 +1078,8 @@
                 <tbody>
                 @forelse ($order->items as $item)
                     @php
-                        $product = $item->product;
+                        $productSku = $item->productSku;
+                        $product = $productSku?->product;
                         $lineTotal = (float) $item->quantity * (float) $item->total_unit_price;
                         $specifications = collect($product?->option ?? [])
                             ->filter(fn ($value) => filled($value))
@@ -1099,6 +1100,9 @@
                             <div class="product-cell">
                                 <span class="product-name">
                                     {{ $product?->name ?? 'Sản phẩm không còn tồn tại' }}
+                                </span>
+                                <span class="product-sku">
+                                    SKU: {{ $productSku?->sku ?? '—' }}
                                 </span>
                             </div>
                         </td>

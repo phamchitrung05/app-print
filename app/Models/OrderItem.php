@@ -6,6 +6,7 @@ use Database\Factories\OrderItemFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 
 class OrderItem extends Model
 {
@@ -14,7 +15,7 @@ class OrderItem extends Model
 
     protected $fillable = [
         'order_id',
-        'product_id',
+        'product_sku_id',
         'quantity',
         'total_unit_price',
     ];
@@ -32,8 +33,20 @@ class OrderItem extends Model
         return $this->belongsTo(Orders::class);
     }
 
-    public function product(): BelongsTo
+    public function productSku(): BelongsTo
     {
-        return $this->belongsTo(Product::class);
+        return $this->belongsTo(ProductSKU::class, 'product_sku_id');
+    }
+
+    public function product(): HasOneThrough
+    {
+        return $this->hasOneThrough(
+            Product::class,
+            ProductSKU::class,
+            'id',
+            'id',
+            'product_sku_id',
+            'product_id',
+        );
     }
 }

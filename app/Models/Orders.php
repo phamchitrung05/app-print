@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Str;
 
 class Orders extends Model
@@ -67,6 +68,10 @@ class Orders extends Model
                 $order->payments()->firstOrCreate([], [
                     'payment_status' => 'pending',
                 ]);
+
+                $order->shipping()->firstOrCreate([], [
+                    'shipping_status' => 'pending',
+                ]);
             }
         });
 
@@ -99,5 +104,10 @@ class Orders extends Model
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class, 'order_id');
+    }
+
+    public function shipping(): HasOne
+    {
+        return $this->hasOne(Shipping::class, 'order_id');
     }
 }

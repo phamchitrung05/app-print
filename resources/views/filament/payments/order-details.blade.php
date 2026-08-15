@@ -99,7 +99,7 @@
                 <table class="w-full divide-y divide-gray-200 text-sm dark:divide-white/10">
                     <thead class="bg-gray-50 dark:bg-white/5">
                         <tr>
-                            <th class="px-5 py-3 text-left font-semibold text-gray-700 dark:text-gray-200">Sản phẩm</th>
+                            <th class="px-5 py-3 text-left font-semibold text-gray-700 dark:text-gray-200">Sản phẩm / SKU</th>
                             <th class="px-5 py-3 text-right font-semibold text-gray-700 dark:text-gray-200">SL</th>
                             <th class="px-5 py-3 text-right font-semibold text-gray-700 dark:text-gray-200">Đơn giá</th>
                             <th class="px-5 py-3 text-right font-semibold text-gray-700 dark:text-gray-200">Thành tiền</th>
@@ -109,7 +109,10 @@
                         @forelse ($order->items as $item)
                             <tr>
                                 <td class="px-5 py-3 font-medium text-gray-950 dark:text-white">
-                                    {{ $item->product?->name ?? 'Sản phẩm không tồn tại' }}
+                                    <div>{{ $item->product?->name ?? 'Sản phẩm không tồn tại' }}</div>
+                                    <div class="text-xs font-normal text-gray-500 dark:text-gray-400">
+                                        SKU: {{ $item->productSku?->sku ?? '—' }}
+                                    </div>
                                 </td>
                                 <td class="px-5 py-3 text-right text-gray-600 dark:text-gray-300">
                                     {{ number_format((float) $item->quantity, 0, ',', '.') }}

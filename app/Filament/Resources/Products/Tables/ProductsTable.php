@@ -4,8 +4,10 @@ namespace App\Filament\Resources\Products\Tables;
 
 use App\Filament\Resources\Products\Schemas\ProductForm;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use App\Models\Product;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -21,6 +23,17 @@ class ProductsTable
                 TextColumn::make('name')
                     ->label('Tên sản phẩm')
                     ->searchable()
+                    ->sortable(),
+
+                TextColumn::make('product_type')
+                    ->label('Loại sản phẩm')
+                    ->formatStateUsing(
+                        fn (?string $state): ?string => [
+                            'in_ly' => 'In ly',
+                            'in_giay' => 'In giấy',
+                        ][$state] ?? $state
+                    )
+                    ->badge()
                     ->sortable(),
 
                 TextColumn::make('sku')
@@ -81,8 +94,54 @@ class ProductsTable
                     ->iconButton()
                     ->tooltip('Chỉnh sửa')
                     ->modalHeading(fn ($record): string => "Chỉnh sửa sản phẩm: {$record->name}")
+                    ->fillForm(fn (Product $record): array => [
+                        'product_skus' => $record->skus()
+                            ->get()
+                            ->map(fn ($sku): array => [
+                                'sku' => $sku->sku,
+                                'price' => $sku->price,
+                                'stock' => $sku->stock,
+                            ])
+                            ->all(),
+                    ])
                     ->schema(fn (Schema $schema): Schema => ProductForm::configure($schema))
+                    ->using(function (Product $record, array $data): Product {
+                        $productSkus = $data['product_skus'] ?? [];
+                        unset($data['product_skus']);
+
+                        $firstSku = collect($productSkus)->first(fn ($skuData): bool => is_array($skuData));
+
+                        $data['price'] = (float) ($firstSku['price'] ?? 0);
+                        $data['stock_quantity'] = (int) ($firstSku['stock'] ?? 0);
+
+                        $record->update($data);
+                        $record->skus()->delete();
+
+                        foreach ($productSkus as $skuData) {
+                            if (! is_array($skuData)) {
+                                continue;
+                            }
+
+                            $sku = trim((string) ($skuData['sku'] ?? ''));
+
+                            if ($sku === '') {
+                                continue;
+                            }
+
+                            $record->skus()->create([
+                                'sku' => $sku,
+                                'price' => (float) ($skuData['price'] ?? 0),
+                                'stock' => (int) ($skuData['stock'] ?? 0),
+                            ]);
+                        }
+
+                        return $record;
+                    })
                     ->modalWidth('7xl'),
+
+                DeleteAction::make()
+                    ->iconButton()
+                    ->tooltip('Xóa sản phẩm'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

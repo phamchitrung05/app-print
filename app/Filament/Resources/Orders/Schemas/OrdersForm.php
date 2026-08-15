@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Orders\Schemas;
 use App\Models\Customer;
 use App\Models\Orders;
 use App\Models\Product;
+use App\Models\ProductSKU;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Repeater;
@@ -121,6 +122,10 @@ class OrdersForm
                                     ->width('40%')
                                     ->markAsRequired(),
 
+                                TableColumn::make('SKU')
+                                    ->width('20%')
+                                    ->markAsRequired(),
+
                                 TableColumn::make('Số lượng')
                                     ->width('15%')
                                     ->markAsRequired(),
@@ -135,30 +140,43 @@ class OrdersForm
                             ->schema([
                                 Select::make('product_id')
                                     ->label('Sản phẩm')
-                                    ->options(function (Get $get): array {
-                                        $currentProductId = $get('product_id');
-                                        $selectedProductIds = collect($get('../../items') ?? [])
-                                            ->pluck('product_id')
-                                            ->filter()
-                                            ->reject(fn ($productId): bool => (string) $productId === (string) $currentProductId)
-                                            ->unique()
-                                            ->values();
-
-                                        return Product::query()
-                                            ->when(
-                                                $selectedProductIds->isNotEmpty(),
-                                                fn (Builder $query): Builder => $query->whereNotIn('id', $selectedProductIds)
-                                            )
-                                            ->orderBy('name')
-                                            ->pluck('name', 'id')
-                                            ->all();
-                                    })
+                                    ->dehydrated(false)
+                                    ->options(fn (): array => Product::query()
+                                        ->orderBy('name')
+                                        ->pluck('name', 'id')
+                                        ->all())
                                     ->searchable()
                                     ->preload()
                                     ->required()
                                     ->live()
+                                    ->afterStateHydrated(function (Select $component, Get $get): void {
+                                        $productSkuId = $get('product_sku_id');
+
+                                        if ($productSkuId) {
+                                            $component->state(
+                                                ProductSKU::find($productSkuId)?->product_id
+                                            );
+                                        }
+                                    })
                                     ->afterStateUpdated(function (?string $state, Set $set): void {
+                                        $set('product_sku_id', null);
                                         $set('total_unit_price', Product::find($state)?->price ?? 0);
+                                    }),
+
+                                Select::make('product_sku_id')
+                                    ->label('SKU')
+                                    ->options(fn (Get $get): array => ProductSKU::query()
+                                        ->where('product_id', $get('product_id'))
+                                        ->orderBy('sku')
+                                        ->pluck('sku', 'id')
+                                        ->all())
+                                    ->searchable()
+                                    ->preload()
+                                    ->required()
+                                    ->selectablePlaceholder(false)
+                                    ->live()
+                                    ->afterStateUpdated(function (?string $state, Set $set): void {
+                                        $set('total_unit_price', ProductSKU::find($state)?->price ?? 0);
                                     }),
 
                                 TextInput::make('quantity')

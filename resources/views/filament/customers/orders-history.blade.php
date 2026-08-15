@@ -1,17 +1,34 @@
-<div class="space-y-3">
+@php
+    $orders = $record->orders()
+        ->with(['items.product', 'items.productSku', 'payments'])
+        ->orderByDesc('ordered_at')
+        ->get();
+
+    $unpaidOrders = $orders->filter(
+        fn ($order): bool => ! $order->payments->contains(
+            fn ($payment): bool => $payment->payment_status === 'confirmed'
+        )
+    );
+
+    $unpaidTotal = $unpaidOrders->sum(
+        fn ($order): float => (float) $order->total_price
+    );
+@endphp
+
+<div class="space-y-6">
     <div class="flex items-center justify-between">
         <h3 class="text-base font-semibold text-gray-950 dark:text-white">
             Lịch sử đơn hàng
         </h3>
 
         <span class="text-sm text-gray-500 dark:text-gray-400">
-            {{ $record->orders()->count() }} đơn hàng
+            {{ $orders->count() }} đơn hàng
         </span>
     </div>
 
-    <div class="max-h-80 overflow-y-auto rounded-xl border border-gray-200 dark:border-white/10">
+    <div class="max-h-48 overflow-y-auto rounded-xl border border-gray-200 dark:border-white/10">
         <table class="w-full text-left text-sm">
-            <thead class="bg-gray-50 text-xs uppercase text-gray-600 dark:bg-white/5 dark:text-gray-400">
+            <thead class="sticky top-0 z-10 bg-gray-50 text-xs uppercase text-gray-600 dark:bg-white/5 dark:text-gray-400">
                 <tr>
                     <th scope="col" class="px-4 py-3 font-medium">
                         Mã đơn hàng
@@ -23,13 +40,16 @@
                         Tổng tiền
                     </th>
                     <th scope="col" class="px-4 py-3 text-center font-medium">
+                        Thanh toán
+                    </th>
+                    <th scope="col" class="px-4 py-3 text-center font-medium">
                         Thao tác
                     </th>
                 </tr>
             </thead>
 
             <tbody class="divide-y divide-gray-200 dark:divide-white/10">
-                @forelse ($record->orders()->with('items.product')->orderByDesc('ordered_at')->get() as $order)
+                @forelse ($orders as $order)
                     <tr x-data="{ orderDetailsOpen: false }" class="bg-white dark:bg-gray-900">
                         <td class="px-4 py-3 font-medium text-gray-950 dark:text-white">
                             {{ $order->code }}
@@ -39,6 +59,17 @@
                         </td>
                         <td class="px-4 py-3 text-right font-medium text-gray-950 dark:text-white">
                             {{ number_format((float) $order->total_price, 0, ',', '.') }} ₫
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                            @if ($order->payments->contains(fn ($payment): bool => $payment->payment_status === 'confirmed'))
+                                <span class="inline-flex rounded-full bg-success-50 px-2.5 py-1 text-xs font-medium text-success-700 dark:bg-success-500/10 dark:text-success-400">
+                                    Đã thanh toán
+                                </span>
+                            @else
+                                <span class="inline-flex rounded-full bg-warning-50 px-2.5 py-1 text-xs font-medium text-warning-700 dark:bg-warning-500/10 dark:text-warning-400">
+                                    Chưa thanh toán
+                                </span>
+                            @endif
                         </td>
                         <td class="px-4 py-3 text-center">
                             <button
@@ -128,7 +159,7 @@
                                                 <table class="w-full text-left text-sm">
                                                     <thead class="sticky top-0 bg-gray-50 text-xs uppercase text-gray-600 dark:bg-white/5 dark:text-gray-400">
                                                         <tr>
-                                                            <th scope="col" class="px-6 py-3 font-medium">Sản phẩm</th>
+                                                            <th scope="col" class="px-6 py-3 font-medium">Sản phẩm / SKU</th>
                                                             <th scope="col" class="px-6 py-3 font-medium">Đơn vị</th>
                                                             <th scope="col" class="px-6 py-3 text-right font-medium">Số lượng</th>
                                                             <th scope="col" class="px-6 py-3 text-right font-medium">Đơn giá</th>
@@ -139,7 +170,10 @@
                                                         @forelse ($order->items as $item)
                                                             <tr>
                                                                 <td class="px-6 py-4 font-medium text-gray-950 dark:text-white">
-                                                                    {{ $item->product?->name ?? 'Sản phẩm không còn tồn tại' }}
+                                                                    <div>{{ $item->product?->name ?? 'Sản phẩm không còn tồn tại' }}</div>
+                                                                    <div class="text-xs font-normal text-gray-500 dark:text-gray-400">
+                                                                        SKU: {{ $item->productSku?->sku ?? '—' }}
+                                                                    </div>
                                                                 </td>
                                                                 <td class="px-6 py-4 text-gray-600 dark:text-gray-400">
                                                                     {{ $item->product?->unit ?? '—' }}
@@ -191,12 +225,66 @@
                     </tr>
                 @empty
                     <tr class="bg-white dark:bg-gray-900">
-                        <td colspan="4" class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">
+                        <td colspan="5" class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">
                             Khách hàng chưa có đơn hàng nào.
                         </td>
                     </tr>
                 @endforelse
             </tbody>
         </table>
+    </div>
+
+    <div class="space-y-3">
+        <div class="flex items-center justify-between">
+            <h3 class="text-base font-semibold text-gray-950 dark:text-white">
+                Các đơn chưa thanh toán
+            </h3>
+
+            <span class="text-sm text-warning-600 dark:text-warning-400">
+                {{ $unpaidOrders->count() }} đơn hàng
+            </span>
+        </div>
+
+        <div class="max-h-48 overflow-y-auto rounded-xl border border-warning-200 dark:border-warning-500/20">
+            <table class="w-full text-left text-sm">
+                <thead class="sticky top-0 bg-warning-50 text-xs uppercase text-warning-700 dark:bg-warning-500/10 dark:text-warning-400">
+                    <tr>
+                        <th scope="col" class="px-4 py-3 font-medium">Mã đơn hàng</th>
+                        <th scope="col" class="px-4 py-3 font-medium">Ngày đặt hàng</th>
+                        <th scope="col" class="px-4 py-3 text-right font-medium">Số tiền chưa thanh toán</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200 dark:divide-white/10">
+                    @forelse ($unpaidOrders as $order)
+                        <tr class="bg-white dark:bg-gray-900">
+                            <td class="px-4 py-3 font-medium text-gray-950 dark:text-white">
+                                {{ $order->code }}
+                            </td>
+                            <td class="px-4 py-3 text-gray-600 dark:text-gray-400">
+                                {{ $order->ordered_at?->format('d/m/Y H:i') ?? '—' }}
+                            </td>
+                            <td class="px-4 py-3 text-right font-medium text-warning-700 dark:text-warning-400">
+                                {{ number_format((float) $order->total_price, 0, ',', '.') }} ₫
+                            </td>
+                        </tr>
+                    @empty
+                        <tr class="bg-white dark:bg-gray-900">
+                            <td colspan="3" class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">
+                                Khách hàng không có đơn chưa thanh toán.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        <div class="flex items-center justify-end gap-4 rounded-xl border border-warning-200 bg-warning-50 px-4 py-3 dark:border-warning-500/20 dark:bg-warning-500/10">
+            <span class="font-medium text-warning-800 dark:text-warning-300">
+                Tổng tiền chưa thanh toán
+            </span>
+            <span class="text-lg font-bold text-warning-800 dark:text-warning-300">
+                {{ number_format($unpaidTotal, 0, ',', '.') }} ₫
+            </span>
+        </div>
     </div>
 </div>
