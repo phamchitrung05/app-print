@@ -20,6 +20,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Filament\Support\Enums\FontWeight;
 use Filament\Support\Icons\Heroicon;
 
 class OrdersTable
@@ -34,6 +35,7 @@ class OrdersTable
             ->columns([
                 TextColumn::make('code')
                     ->label('Mã đơn hàng')
+                    ->weight(FontWeight::Bold)
                     ->searchable()
                     ->sortable()
                     ->copyable(),

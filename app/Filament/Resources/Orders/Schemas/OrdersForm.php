@@ -35,9 +35,13 @@ class OrdersForm
                             ->hidden()
                             ->dehydrated(),
 
-                        Placeholder::make('code')
+                        TextInput::make('code')
                             ->label('Mã đơn hàng')
-                            ->content(fn (?Orders $record): string => $record?->code ?? 'Tự động sau khi lưu')
+                            ->formatStateUsing(
+                                fn (?string $state): string => $state ?? 'Tự động sau khi lưu'
+                            )
+                            ->disabled()
+                            ->dehydrated(false)
                             ->helperText('Mã gồm 5 chữ số, được hệ thống tự động tạo theo thứ tự đơn hàng.'),
 
                         DateTimePicker::make('ordered_at')
