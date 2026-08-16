@@ -20,6 +20,7 @@ class ProductsTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn ($query) => $query->with('skus'))
             ->columns([
                 TextColumn::make('name')
                     ->label('Tên sản phẩm')
