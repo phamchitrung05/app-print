@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Products\Pages;
 use App\Filament\Resources\Products\ProductResource;
 use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
+use Illuminate\Support\Facades\DB;
 
 class EditProduct extends EditRecord
 {
@@ -61,24 +62,53 @@ class EditProduct extends EditRecord
 
     protected function syncProductSkus(): void
     {
-        $this->record->skus()->delete();
+        DB::transaction(function () {
+            $existingSkuIds = [];
 
-        foreach ($this->productSkusData as $skuData) {
-            if (! is_array($skuData)) {
-                continue;
+            foreach ($this->productSkusData as $skuData) {
+                if (! is_array($skuData)) {
+                    continue;
+                }
+
+                $sku = trim((string) ($skuData['sku'] ?? ''));
+
+                if ($sku === '') {
+                    continue;
+                }
+
+                $skuId = $skuData['id'] ?? null;
+
+                if ($skuId) {
+                    $skuModel = $this->record->skus()
+                        ->whereKey($skuId)
+                        ->first();
+
+                    if (! $skuModel) {
+                        continue;
+                    }
+
+                    $skuModel->update([
+                        'sku' => $sku,
+                        'price' => (float) ($skuData['price'] ?? 0),
+                        'stock' => (int) ($skuData['stock'] ?? 0),
+                    ]);
+
+                    $existingSkuIds[] = $skuModel->id;
+                } else {
+                    $skuModel = $this->record->skus()->create([
+                        'sku' => $sku,
+                        'price' => (float) ($skuData['price'] ?? 0),
+                        'stock' => (int) ($skuData['stock'] ?? 0),
+                    ]);
+
+                    $existingSkuIds[] = $skuModel->id;
+                }
             }
 
-            $sku = trim((string) ($skuData['sku'] ?? ''));
-
-            if ($sku === '') {
-                continue;
-            }
-
-            $this->record->skus()->create([
-                'sku' => $sku,
-                'price' => (float) ($skuData['price'] ?? 0),
-                'stock' => (int) ($skuData['stock'] ?? 0),
-            ]);
-        }
+            // Xóa những SKU đã bị người dùng remove khỏi form
+            $this->record->skus()
+                ->whereNotIn('id', $existingSkuIds)
+                ->delete();
+        });
     }
 }

@@ -52,10 +52,11 @@ class ProductsTable
                     ->label('Giá')
                     ->getStateUsing(fn (Product $record): array => $record->skus
                         ->map(fn ($sku): HtmlString => new HtmlString(sprintf(
-                            '<span class="%s">%s - %s</span>',
+                            '<span class="%s">#%d - %s - %s</span>',
                             (int) $sku->stock === 0
                                 ? 'text-danger-600 font-bold'
                                 : 'text-info-600 font-bold',
+                            $sku->id,
                             e($sku->sku),
                             number_format((float) $sku->price, 0, ',', '.') . ' ₫',
                         )))
@@ -111,6 +112,7 @@ class ProductsTable
                         'product_skus' => $record->skus()
                             ->get()
                             ->map(fn ($sku): array => [
+                                'id' => $sku->id,
                                 'sku' => $sku->sku,
                                 'price' => $sku->price,
                                 'stock' => $sku->stock,
@@ -123,7 +125,8 @@ class ProductsTable
                         unset($data['product_skus']);
 
                         $record->update($data);
-                        $record->skus()->delete();
+
+                        $submittedIds = [];
 
                         foreach ($productSkus as $skuData) {
                             if (! is_array($skuData)) {
@@ -136,12 +139,32 @@ class ProductsTable
                                 continue;
                             }
 
-                            $record->skus()->create([
+                            $skuId = $skuData['id'] ?? null;
+
+                            $attributes = [
                                 'sku' => $sku,
                                 'price' => (float) ($skuData['price'] ?? 0),
                                 'stock' => (int) ($skuData['stock'] ?? 0),
-                            ]);
+                            ];
+
+                            if ($skuId) {
+                                $existingSku = $record->skus()->find($skuId);
+
+                                if ($existingSku) {
+                                    $existingSku->update($attributes);
+                                    $submittedIds[] = $existingSku->id;
+                                } else {
+                                    $newSku = $record->skus()->create($attributes);
+                                    $submittedIds[] = $newSku->id;
+                                }
+                            } else {
+                                $newSku = $record->skus()->create($attributes);
+                                $submittedIds[] = $newSku->id;
+                            }
                         }
+
+                        // Delete SKUs that are no longer in the form data
+                        $record->skus()->whereNotIn('id', $submittedIds)->delete();
 
                         return $record;
                     })
