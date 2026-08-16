@@ -258,8 +258,14 @@ class OrdersForm
                                     ->required()
                                     ->selectablePlaceholder(false)
                                     ->live()
-                                    ->afterStateUpdated(function (?string $state, Set $set): void {
-                                        $set('total_unit_price', ProductSKU::find($state)?->price ?? 0);
+                                    ->afterStateUpdated(function (?string $state, Set $set, Get $get): void {
+                                        $sku = ProductSKU::find($state);
+                                        $set('total_unit_price', $sku?->price ?? 0);
+                                        $currentQty = (int) ($get('quantity') ?? 1);
+                                        $maxQty = max(1, (int) ($sku?->stock ?? 1));
+                                        if ($currentQty > $maxQty) {
+                                            $set('quantity', $maxQty);
+                                        }
                                     }),
 
                                 TextInput::make('quantity')
@@ -269,7 +275,19 @@ class OrdersForm
                                     ->integer()
                                     ->minValue(1)
                                     ->default(1)
-                                    ->live(),
+                                    ->live(debounce: 500)
+                                    ->afterStateUpdated(function (Get $get, Set $set, ?string $state): void {
+                                        $skuId = $get('product_sku_id');
+                                        if (! $skuId) {
+                                            return;
+                                        }
+                                        $stock = (int) ProductSKU::query()->whereKey($skuId)->value('stock');
+                                        $maxQty = max(1, $stock);
+                                        $currentQty = (int) ($state ?? 1);
+                                        if ($currentQty > $maxQty) {
+                                            $set('quantity', $maxQty);
+                                        }
+                                    }),
 
                                 TextInput::make('total_unit_price')
                                     ->label('Đơn giá')
