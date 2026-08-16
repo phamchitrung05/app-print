@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Products\Schemas;
 
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -63,6 +64,7 @@ class ProductForm
                                         Repeater::make('product_skus')
                                             ->label('Danh sách SKU')
                                             ->schema([
+                                                Hidden::make('id'),
                                                 TextInput::make('sku')
                                                     ->label('SKU')
                                                     ->required()
