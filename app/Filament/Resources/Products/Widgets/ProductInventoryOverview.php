@@ -23,6 +23,19 @@ class ProductInventoryOverview extends StatsOverviewWidget
         $totalValue = (float) ($inventory->total_value ?? 0);
         $totalStock = (int) ($inventory->total_stock ?? 0);
 
+        // Thống kê riêng cho sản phẩm in ly
+        $mugInventory = ProductSKU::query()
+            ->join('products', 'product_skus.product_id', '=', 'products.id')
+            ->where('products.product_type', 'in_ly')
+            ->select([
+                DB::raw('COALESCE(SUM(product_skus.price * product_skus.stock), 0) as total_value'),
+                DB::raw('COALESCE(SUM(product_skus.stock), 0) as total_stock'),
+            ])
+            ->first();
+
+        $mugTotalValue = (float) ($mugInventory->total_value ?? 0);
+        $mugTotalStock = (int) ($mugInventory->total_stock ?? 0);
+
         return [
             Stat::make(
                 'Giá trị hàng tồn kho',
@@ -39,6 +52,14 @@ class ProductInventoryOverview extends StatsOverviewWidget
                 ->description('Tổng số sản phẩm còn trong kho')
                 ->color('primary')
                 ->icon('heroicon-o-cube'),
+
+            Stat::make(
+                'Tồn kho in ly',
+                number_format($mugTotalStock, 0, ',', '.') . ' sản phẩm',
+            )
+                ->description('Giá trị: ' . number_format($mugTotalValue, 0, ',', '.') . ' ₫')
+                ->color('warning')
+                ->icon('heroicon-o-fire'),
         ];
     }
 }
