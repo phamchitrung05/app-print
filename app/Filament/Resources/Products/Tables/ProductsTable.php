@@ -52,11 +52,10 @@ class ProductsTable
                     ->label('Giá')
                     ->getStateUsing(fn (Product $record): array => $record->skus
                         ->map(fn ($sku): HtmlString => new HtmlString(sprintf(
-                            '<span class="%s">#%d - %s - %s</span>',
+                            '<span class="%s">%s - %s</span>',
                             (int) $sku->stock === 0
                                 ? 'text-danger-600 font-bold'
                                 : 'text-info-600 font-bold',
-                            $sku->id,
                             e($sku->sku),
                             number_format((float) $sku->price, 0, ',', '.') . ' ₫',
                         )))
