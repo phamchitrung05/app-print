@@ -10,9 +10,41 @@ class EditProduct extends EditRecord
 {
     protected static string $resource = ProductResource::class;
 
+    protected array $productSkusData = [];
+
+    protected function mutateFormDataBeforeFill(array $data): array
+    {
+        $data['product_skus'] = $this->record->skus()
+            ->get()
+            ->map(function ($sku): array {
+                return [
+                    'sku' => $sku->sku,
+                    'price' => $sku->price,
+                    'stock' => $sku->stock,
+                ];
+            })
+            ->all();
+
+        return $data;
+    }
+
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        $this->productSkusData = $data['product_skus'] ?? [];
+
+        $firstSku = collect($this->productSkusData)->first(fn ($skuData): bool => is_array($skuData));
+
+        $data['price'] = (float) ($firstSku['price'] ?? 0);
+        $data['stock_quantity'] = (int) ($firstSku['stock'] ?? 0);
+
+        unset($data['product_skus']);
+
+        return $data;
+    }
+
     protected function afterSave(): void
     {
-        $this->updateProductPriceFromFirstSku();
+        $this->syncProductSkus();
     }
 
     protected function getHeaderActions(): array
@@ -27,14 +59,25 @@ class EditProduct extends EditRecord
         return $this->getResource()::getUrl('index');
     }
 
-    protected function updateProductPriceFromFirstSku(): void
+    protected function syncProductSkus(): void
     {
-        $firstSku = $this->record->skus()->orderBy('id')->first();
+        $this->record->skus()->delete();
 
-        if ($firstSku) {
-            $this->record->updateQuietly([
-                'price' => $firstSku->price,
-                'stock_quantity' => $firstSku->stock,
+        foreach ($this->productSkusData as $skuData) {
+            if (! is_array($skuData)) {
+                continue;
+            }
+
+            $sku = trim((string) ($skuData['sku'] ?? ''));
+
+            if ($sku === '') {
+                continue;
+            }
+
+            $this->record->skus()->create([
+                'sku' => $sku,
+                'price' => (float) ($skuData['price'] ?? 0),
+                'stock' => (int) ($skuData['stock'] ?? 0),
             ]);
         }
     }
