@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Products\Schemas;
 
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -60,8 +61,9 @@ class ProductForm
 
                                 Section::make('Phân Loại Sản Phẩm')
                                     ->schema([
-                                        Repeater::make('product_skus')
+                                        Repeater::make('skus')
                                             ->label('Danh sách SKU')
+                                            ->relationship('skus')
                                             ->schema([
                                                 TextInput::make('sku')
                                                     ->label('SKU')
