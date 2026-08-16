@@ -233,7 +233,7 @@
         .header {
             display: grid;
             grid-template-columns: 1fr 1.15fr;
-            gap: 8mm;
+            gap: 4mm;
             height: 68mm;
         }
 
@@ -306,7 +306,7 @@
         }
 
         .order-title {
-            font-size: 9mm;
+            font-size: 7mm;
             line-height: 1;
             font-weight: 800;
             color: #f45116;
@@ -554,7 +554,7 @@
 
         .bottom-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr 1.08fr;
+            grid-template-columns: 1fr 1.5fr 1.08fr;
             gap: 3mm;
             margin-top: 4mm;
             height: 36mm;
@@ -627,14 +627,14 @@
 
         .payment-content {
             display: grid;
-            grid-template-columns: 20mm 1fr;
+            grid-template-columns: 28mm 1fr;
             gap: 3mm;
             align-items: center;
         }
 
         .qr {
-            width: 19mm;
-            height: 19mm;
+            width: 30mm;
+            height: 30mm;
             object-fit: contain;
         }
 
@@ -886,10 +886,10 @@
 
 
             <!-- ORDER -->
-            <div class="order-header pt-15">
+            <div class="order-header pt-17">
 
                 <div class="order-title">
-                    ORDER
+                    ĐƠN ĐẶT HÀNG
                 </div>
 
                 <div class="order-code">
@@ -1210,40 +1210,38 @@
 
             </div>
 
-
             <!-- PAYMENT -->
             <div class="bottom-box payment-box">
 
-                <div class="section-heading">
-                    THÔNG TIN THANH TOÁN
-                </div>
 
                 <div class="payment-content">
 
                     <img
                         class="qr"
-                        src="https://placehold.co/200x200/png?text=QR"
+                        src="{{ asset('storage/QR.png') }}"
                         alt="QR thanh toán"
                     >
 
                     <div class="payment-details">
-
+                        <div class="section-heading">
+                            THÔNG TIN THANH TOÁN
+                        </div>
                         <div>
                             <span class="label">Ngân hàng</span>
                             :
-                            Vietcombank
+                            BIDV
                         </div>
 
                         <div>
                             <span class="label">Số tài khoản</span>
                             :
-                            1234 5678 9012
+                            8607377666
                         </div>
 
                         <div>
                             <span class="label">Chủ tài khoản</span>
                             :
-                            MALIBU PRINT
+                            HỘ KINH DOANH MALIBU PRINT
                         </div>
 
                     </div>
@@ -1276,10 +1274,6 @@
                         {{ number_format($total, 0, ',', '.') }} VNĐ
                     </div>
 
-                </div>
-
-                <div class="summary-words">
-                    (Bằng số: {{ number_format($total, 0, ',', '.') }} đồng)
                 </div>
 
             </div>
