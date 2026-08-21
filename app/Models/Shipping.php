@@ -11,6 +11,11 @@ class Shipping extends Model
     protected $fillable = [
         'order_id',
         'shipping_status',
+        'export_volume',
+    ];
+
+    protected $casts = [
+        'export_volume' => 'integer',
     ];
 
     protected static function booted(): void

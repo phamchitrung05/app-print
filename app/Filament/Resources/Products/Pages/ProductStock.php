@@ -30,13 +30,13 @@ class ProductStock extends Page implements HasTable
 
     protected static ?string $navigationLabel = 'Tồn kho';
 
-    protected static bool $shouldRegisterNavigation = true;
+    protected static bool $shouldRegisterNavigation = false;
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Shop';
+    protected static string|\UnitEnum|null $navigationGroup = 'Tồn Kho';
 
     protected static ?string $title = 'Tồn kho sản phẩm';
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 1;
 
     protected string $view = 'filament.resources.products.pages.product-stock';
 

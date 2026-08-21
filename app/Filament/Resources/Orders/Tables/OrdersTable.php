@@ -18,8 +18,10 @@ use Illuminate\Support\Str;
 use App\Filament\Resources\Orders\Schemas\OrdersForm;
 use Filament\Tables\Columns\SelectColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Filament\Support\Enums\FontWeight;
 use Filament\Support\Icons\Heroicon;
@@ -101,6 +103,16 @@ class OrdersTable
                 SelectFilter::make('status')
                     ->label('Trạng thái')
                     ->options(config('orders.statuses')),
+
+                TernaryFilter::make('ready_made_goods')
+                    ->label('Đơn làm sẵn')
+                    ->placeholder('Tất cả')
+                    ->trueLabel('Làm sẵn')
+                    ->falseLabel('Đặt làm')
+                    ->queries(
+                        true: fn (Builder $query) => $query->where('ready_made_goods', true),
+                        false: fn (Builder $query) => $query->where('ready_made_goods', false),
+                    ),
 
                 SelectFilter::make('payment_method')
                     ->label('Phương thức thanh toán')

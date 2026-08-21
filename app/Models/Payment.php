@@ -10,8 +10,10 @@ class Payment extends Model
 {
     protected $fillable = [
         'order_id',
+        'order_item_id',
         'payment_method',
         'payment_status',
+        'export_volumn',
         'confirmed_by',
         'confirmed_at',
     ];
@@ -19,6 +21,8 @@ class Payment extends Model
     protected function casts(): array
     {
         return [
+            'order_item_id' => 'integer',
+            'export_volumn' => 'integer',
             'confirmed_at' => 'datetime',
         ];
     }
@@ -47,6 +51,11 @@ class Payment extends Model
     public function order(): BelongsTo
     {
         return $this->belongsTo(Orders::class, 'order_id');
+    }
+
+    public function orderItem(): BelongsTo
+    {
+        return $this->belongsTo(OrderItem::class, 'order_item_id');
     }
 
     public function confirmedBy(): BelongsTo

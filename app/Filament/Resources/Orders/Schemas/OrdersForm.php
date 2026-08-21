@@ -13,6 +13,7 @@ use Filament\Forms\Components\Repeater\TableColumn;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
@@ -97,6 +98,14 @@ class OrdersForm
                             ->disabled()
                             ->dehydrated(false)
                             ->placeholder('Tự động điền khi chọn khách hàng'),
+
+                        Toggle::make('ready_made_goods')
+                            ->label('Đơn làm sẵn')
+                            ->helperText('Bật nếu đây là đơn hàng làm sẵn có thể giao ngay.')
+                            ->onColor('success')
+                            ->offColor('gray')
+                            ->default(false)
+                            ->inline(false),
 
                         Textarea::make('note')
                             ->label('Ghi chú')

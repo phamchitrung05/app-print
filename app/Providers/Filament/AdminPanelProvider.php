@@ -38,13 +38,14 @@ class AdminPanelProvider extends PanelProvider
                 'Shop',
                 'Customer',
                 'Payment',
+                'Tồn Kho',
                 'Hệ thống',
             ])
             ->navigationItems([
                 NavigationItem::make('Tồn kho')
-                    ->group('Shop')
+                    ->group('Tồn Kho')
                     ->icon(Heroicon::OutlinedArchiveBox)
-                    ->sort(3)
+                    ->sort(1)
                     ->url(fn (): string => ProductResource::getUrl('stock'))
                     ->isActiveWhen(fn (): bool => request()->routeIs('filament.admin.resources.products.stock')),
             ])

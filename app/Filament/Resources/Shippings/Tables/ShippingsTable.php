@@ -46,9 +46,18 @@ class ShippingsTable
                     ->toggleable(),
 
                 TextColumn::make('order.ordered_at')
-                    ->label('Ngày đặt hàng')
+                    ->label('Ngày Đặt Hàng')
                     ->dateTime('d/m/Y H:i')
                     ->sortable(),
+
+                // Số lượng hàng của lần giao này (được ghi khi xuất kho từ tồn khách hàng)
+                TextColumn::make('export_volume')
+                    ->label('Số lượng xuất')
+                    ->numeric(locale: 'vi')
+                    ->badge()
+                    ->color(fn (int $state): string => $state > 0 ? 'success' : 'gray')
+                    ->sortable()
+                    ->toggleable(),
 
                 SelectColumn::make('shipping_status')
                     ->label('Trạng thái giao hàng')

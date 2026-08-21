@@ -6,6 +6,7 @@ use Database\Factories\OrderItemFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 
 class OrderItem extends Model
@@ -48,5 +49,10 @@ class OrderItem extends Model
             'product_sku_id',
             'product_id',
         );
+    }
+
+    public function customerStock(): HasOne
+    {
+        return $this->hasOne(CustomerStock::class, 'order_item_id');
     }
 }
