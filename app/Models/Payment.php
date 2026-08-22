@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Services\InventoryService;
+use App\Services\ReadyMadeOrderCompletionService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -42,8 +43,66 @@ class Payment extends Model
         });
 
         static::updated(function (Payment $payment): void {
-            if ($payment->wasChanged('payment_status') && $payment->payment_status === 'confirmed') {
+            $shouldHandleConfirmed = $payment->wasChanged('payment_status') && $payment->payment_status === 'confirmed';
+
+            if (! $shouldHandleConfirmed) {
+                return;
+            }
+
+            try {
                 InventoryService::deductForOrder($payment->order_id);
+            } catch (\Throwable $e) {
+                report($e);
+            }
+
+            try {
+                $order = Orders::find($payment->order_id);
+
+                if ($order === null) {
+                    return;
+                }
+
+                // ready_made_goods = false: cập nhật ngay status_paid = paid khi có payment confirmed
+                if (! $order->ready_made_goods) {
+                    if ($order->status_paid !== 'paid') {
+                        $order->forceFill(['status_paid' => 'paid'])->saveQuietly();
+                    }
+
+                    return;
+                }
+
+                // ready_made_goods = true: không cập nhật trực tiếp, ủy quyền cho ReadyMadeOrderCompletionService
+                // Service sẽ kiểm tra 2 điều kiện (tồn = 0 + tất cả payment per-SKU confirmed) rồi mới set paid
+                ReadyMadeOrderCompletionService::tryCompleteOrder($payment->order_id);
+            } catch (\Throwable $e) {
+                report($e);
+            }
+        });
+
+        // Khi tạo payment đã ở trạng thái confirmed ngay từ đầu
+        static::created(function (Payment $payment): void {
+            if ($payment->payment_status !== 'confirmed') {
+                return;
+            }
+
+            try {
+                $order = Orders::find($payment->order_id);
+
+                if ($order === null) {
+                    return;
+                }
+
+                if (! $order->ready_made_goods) {
+                    if ($order->status_paid !== 'paid') {
+                        $order->forceFill(['status_paid' => 'paid'])->saveQuietly();
+                    }
+
+                    return;
+                }
+
+                ReadyMadeOrderCompletionService::tryCompleteOrder($payment->order_id);
+            } catch (\Throwable $e) {
+                report($e);
             }
         });
     }

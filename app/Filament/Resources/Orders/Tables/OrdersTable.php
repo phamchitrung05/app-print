@@ -11,6 +11,7 @@ use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Builder;
+use Filament\Notifications\Notification;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Js;
@@ -64,12 +65,12 @@ class OrdersTable
                 SelectColumn::make('status')
                     ->label('Trạng thái')
                     ->options(config('orders.statuses'))
-                    ->disabled(fn ($record): bool => $record?->status === 'completed')
+                    ->disabled(fn ($record): bool => in_array($record?->status, ['completed', 'cancelled'], true))
                     ->selectablePlaceholder(false)
                     ->sortable(),
 
                 TextColumn::make('payment_method')
-                    ->label('Thanh toán')
+                    ->label('PT thanh toán')
                     ->formatStateUsing(
                         fn (?string $state): ?string => config('orders.payment_methods')[$state] ?? $state
                     )
@@ -127,7 +128,7 @@ class OrdersTable
 
                 EditAction::make()
                     ->iconButton()
-                    ->hidden(fn ($record): bool => $record?->status === 'completed'),
+                    ->hidden(fn ($record): bool => in_array($record?->status, ['completed', 'cancelled'], true)),
 
                 Action::make('reorder')
                     ->label('Đặt lại đơn này')
@@ -144,6 +145,8 @@ class OrdersTable
                                 'code',
                                 'ordered_at',
                                 'status',
+                                'status_paid',
+                                'inventory_deducted_at',
                                 'created_at',
                                 'updated_at',
                             ]);
@@ -152,6 +155,8 @@ class OrdersTable
                             $newOrder->code = null;
                             $newOrder->ordered_at = now();
                             $newOrder->status = 'new';
+                            $newOrder->status_paid = 'unpaid';
+                            $newOrder->inventory_deducted_at = null;
                             $newOrder->save();
 
                             foreach ($record->items as $item) {
@@ -168,11 +173,13 @@ class OrdersTable
                 Action::make('print')
                     ->icon(Heroicon::OutlinedPrinter)
                     ->iconButton()
+                    ->hidden(fn ($record): bool => $record?->status === 'cancelled')
                     ->url(fn ($record): string => route('orders.print', $record))
                     ->openUrlInNewTab(),
 
                 DeleteAction::make()
-                    ->iconButton(),
+                    ->iconButton()
+                    ->hidden(fn (): bool => true),
             ], RecordActionsPosition::BeforeColumns)
             ->toolbarActions([
                 BulkActionGroup::make([
@@ -180,15 +187,36 @@ class OrdersTable
                         ->label('In các đơn đã chọn')
                         ->icon(Heroicon::OutlinedPrinter)
                         ->action(function (Collection $records, $livewire): void {
+                            $printable = $records->reject(fn ($order): bool => $order->status === 'cancelled');
+
+                            if ($printable->isEmpty()) {
+                                Notification::make()
+                                    ->title('Không thể in đơn đã hủy')
+                                    ->body('Các đơn đã chọn đều ở trạng thái Đã Hủy.')
+                                    ->warning()
+                                    ->send();
+
+                                return;
+                            }
+
+                            if ($printable->count() !== $records->count()) {
+                                Notification::make()
+                                    ->title('Đã loại đơn hủy khỏi danh sách in')
+                                    ->body('Các đơn ở trạng thái Đã Hủy sẽ không được in.')
+                                    ->warning()
+                                    ->send();
+                            }
+
                             $url = route(
                                 'orders.print.bulk',
-                                ['ids' => $records->pluck('id')->implode(',')],
+                                ['ids' => $printable->pluck('id')->implode(',')],
                             );
 
                             $livewire->js("window.open(" . Js::from($url) . ", '_blank')");
                         }),
 
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->hidden(fn (): bool => true),
                 ]),
             ]);
     }

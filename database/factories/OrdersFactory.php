@@ -24,6 +24,7 @@ class OrdersFactory extends Factory
             'uuid' => (string) Str::uuid(),
             'ordered_at' => fake()->dateTimeBetween('-6 months', 'now'),
             'status' => fake()->randomElement(['new', 'processing', 'completed', 'cancelled']),
+            'status_paid' => fake()->randomElement(['unpaid', 'paid']),
             'total_price' => 0,
             'discount' => fake()->randomFloat(2, 0, 100000),
             'note' => fake('vi_VN')->optional()->sentence(),

@@ -1,13 +1,11 @@
 @php
     $orders = $record->orders()
-        ->with(['items.product', 'items.productSku', 'payments'])
+        ->with(['items.product', 'items.productSku'])
         ->orderByDesc('ordered_at')
         ->get();
 
     $unpaidOrders = $orders->filter(
-        fn ($order): bool => ! $order->payments->contains(
-            fn ($payment): bool => $payment->payment_status === 'confirmed'
-        )
+        fn ($order): bool => $order->status_paid !== 'paid'
     );
 
     $unpaidTotal = $unpaidOrders->sum(
@@ -40,6 +38,9 @@
                         Tổng tiền
                     </th>
                     <th scope="col" class="px-4 py-3 text-center font-medium">
+                        Loại Đơn Hàng
+                    </th>
+                    <th scope="col" class="px-4 py-3 text-center font-medium">
                         Thanh toán
                     </th>
                     <th scope="col" class="px-4 py-3 text-center font-medium">
@@ -61,7 +62,16 @@
                             {{ number_format((float) $order->total_price, 0, ',', '.') }} ₫
                         </td>
                         <td class="px-4 py-3 text-center">
-                            @if ($order->payments->contains(fn ($payment): bool => $payment->payment_status === 'confirmed'))
+                            @if ($order->ready_made_goods)
+                                <span class="inline-flex rounded-full bg-info-50 px-2.5 py-1 text-xs font-medium text-info-700 dark:bg-info-500/10 dark:text-info-400">
+                                    Đơn Làm Sẵn
+                                </span>
+                            @else
+                                <span class="text-gray-400 dark:text-gray-500">—</span>
+                            @endif
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                            @if ($order->status_paid === 'paid')
                                 <span class="inline-flex rounded-full bg-success-50 px-2.5 py-1 text-xs font-medium text-success-700 dark:bg-success-500/10 dark:text-success-400">
                                     Đã thanh toán
                                 </span>
@@ -225,7 +235,7 @@
                     </tr>
                 @empty
                     <tr class="bg-white dark:bg-gray-900">
-                        <td colspan="5" class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">
+                        <td colspan="6" class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">
                             Khách hàng chưa có đơn hàng nào.
                         </td>
                     </tr>

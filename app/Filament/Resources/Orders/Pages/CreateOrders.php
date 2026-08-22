@@ -7,8 +7,12 @@ use Filament\Resources\Pages\CreateRecord;
 
 class CreateOrders extends CreateRecord
 {
-
     protected static string $resource = OrdersResource::class;
+
+    protected function getRedirectUrl(): string
+    {
+        return static::getResource()::getUrl('index');
+    }
 
     /**
      * Calculate the order total before the order and its items are persisted.

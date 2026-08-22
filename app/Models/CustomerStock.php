@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\ReadyMadeOrderCompletionService;
 use Database\Factories\CustomerStockFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -26,6 +27,26 @@ class CustomerStock extends Model
         return [
             'quantity' => 'integer',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        // Khi tồn kho thay đổi (thường là sau khi xuất kho), thử auto-complete đơn làm sẵn
+        static::updated(function (CustomerStock $stock): void {
+            if (! $stock->wasChanged('quantity') && ! $stock->wasChanged('status')) {
+                return;
+            }
+
+            if ($stock->order_item_id === null) {
+                return;
+            }
+
+            try {
+                ReadyMadeOrderCompletionService::tryCompleteByOrderItemId((int) $stock->order_item_id);
+            } catch (\Throwable $e) {
+                report($e);
+            }
+        });
     }
 
     public function customer(): BelongsTo

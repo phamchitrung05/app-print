@@ -20,16 +20,19 @@ Route::get('/orders/print-bulk', function (Request $request) {
     $orders = Orders::query()
         ->with(['customer', 'items.product'])
         ->whereIn('id', $orderIds)
+        ->where('status', '!=', 'cancelled')
         ->get()
         ->sortBy(fn (Orders $order): int => $orderIds->search($order->id))
         ->values();
 
-    abort_if($orders->isEmpty(), 404);
+    abort_if($orders->isEmpty(), 404, 'Không thể in đơn đã hủy.');
 
     return view('orders.print-bulk', compact('orders'));
 })->name('orders.print.bulk');
 
 Route::get('/orders/{order}/print', function (Orders $order) {
+    abort_if($order->status === 'cancelled', 404, 'Không thể in đơn đã hủy.');
+
     $order->load(['customer', 'items.product']);
 
     return view('orders.print', compact('order'));

@@ -14,6 +14,20 @@ return [
         'new' => 'Mới tạo',
         'processing' => 'Đang xử lý',
         'completed' => 'Hoàn thành',
+        'cancelled' => 'Đã Hủy',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Order payment statuses (status_paid)
+    |--------------------------------------------------------------------------
+    |
+    | Lưu trạng thái thanh toán riêng của đơn hàng, tách khỏi trạng thái xử lý đơn.
+    |
+    */
+    'status_paid' => [
+        'unpaid' => 'Chưa thanh toán',
+        'paid' => 'Đã thanh toán',
     ],
 
     /*

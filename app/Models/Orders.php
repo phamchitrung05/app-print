@@ -22,6 +22,7 @@ class Orders extends Model
         'code',
         'ordered_at',
         'status',
+        'status_paid',
         'ready_made_goods',
         'payment_method',
         'total_price',
@@ -52,16 +53,35 @@ class Orders extends Model
         static::created(function (Orders $order): void {
             // Nếu chưa có mã (do fillable không có code) thì sinh mã dựa trên ID: pad 5 chữ số (vd 00012)
             // Dùng saveQuietly để không kích hoạt lại event updated gây vòng lặp
+            $needsSave = false;
             if ($order->code === null) {
-                $order->forceFill([
-                    'code' => str_pad((string) $order->getKey(), 5, '0', STR_PAD_LEFT),
-                ])->saveQuietly();
+                $order->code = str_pad((string) $order->getKey(), 5, '0', STR_PAD_LEFT);
+                $needsSave = true;
+            }
+
+            // Đơn thường tạo đã ở trạng thái completed thì coi như đã thanh toán
+            if ($order->status === 'completed' && ! $order->ready_made_goods && $order->status_paid !== 'paid') {
+                $order->status_paid = 'paid';
+                $needsSave = true;
+            }
+
+            if ($needsSave) {
+                $order->saveQuietly();
             }
 
             // Cập nhật ngày đặt gần nhất của khách hàng để hiển thị last_order
             Customer::query()
                 ->whereKey($order->customer_id)
                 ->update(['last_order' => $order->ordered_at]);
+
+            // Trừ tồn kho ngay khi đơn được tạo (yêu cầu mới).
+            // Lưu ý: Filament tạo order_items sau Orders::created nên lần này có thể chưa có item
+            // -> InventoryService sẽ return sớm, OrderItem::created sẽ gọi lại để trừ đủ.
+            try {
+                \App\Services\InventoryService::deductForOrder($order);
+            } catch (\Throwable $e) {
+                report($e);
+            }
         });
 
         // Khi cập nhật đơn hàng: đồng bộ last_order và xử lý nghiệp vụ khi chuyển sang completed
@@ -75,6 +95,24 @@ class Orders extends Model
             // Đồng bộ last_order cho từng khách (lấy max ordered_at còn lại)
             foreach ($customerIds as $customerId) {
                 self::syncCustomerLastOrder((int) $customerId);
+            }
+
+            // Nếu vừa chuyển sang cancelled thì hoàn kho cho các SKU trong đơn (idempotent)
+            if (
+                $order->wasChanged('status')
+                && $order->status === 'cancelled'
+                && $order->getOriginal('status') !== 'cancelled'
+            ) {
+                try {
+                    // Đọc fresh để có inventory_deducted_at mới nhất (tránh stale do saveQuietly trước đó)
+                    $fresh = static::query()->whereKey($order->getKey())->first();
+                    $target = ($fresh !== null && $fresh->inventory_deducted_at !== null) ? $fresh : $order;
+                    \App\Services\InventoryService::restoreForOrder($target);
+                } catch (\Throwable $e) {
+                    report($e);
+                }
+
+                return;
             }
 
             // Chỉ xử lý khi trạng thái vừa chuyển sang completed lần đầu (tránh chạy lại khi update field khác)
@@ -112,6 +150,11 @@ class Orders extends Model
                     $order->shipping()->firstOrCreate([], [
                         'shipping_status' => 'pending',
                     ]);
+
+                    // Yêu cầu: đơn thường (ready_made_goods=false) khi chuyển sang completed thì coi như đã thanh toán
+                    if ($order->status_paid !== 'paid') {
+                        $order->forceFill(['status_paid' => 'paid'])->saveQuietly();
+                    }
                 }
 
                 // Trừ tồn kho kho tổng (product_skus.stock) ngay khi hoàn thành

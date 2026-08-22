@@ -29,6 +29,60 @@ class OrderItem extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        // Trừ tồn kho ngay sau khi dòng hàng được tạo.
+        // Do Filament tạo Orders trước, order_items sau từng dòng, nên:
+        // - Nếu đơn chưa trừ lần nào: trừ theo tổng hiện có (deductForOrder).
+        // - Nếu đơn đã trừ rồi (đã qua dòng đầu): chỉ trừ thêm SKU của dòng mới này (incremental) để không bỏ sót.
+        static::created(function (OrderItem $item): void {
+            try {
+                $order = \App\Models\Orders::find($item->order_id);
+                if ($order === null) {
+                    return;
+                }
+                if ($order->status === 'cancelled') {
+                    return;
+                }
+
+                if ($order->inventory_deducted_at === null) {
+                    \App\Services\InventoryService::deductForOrder($order);
+                    return;
+                }
+
+                // Đã trừ trước đó -> trừ incremental cho dòng mới này
+                \Illuminate\Support\Facades\DB::transaction(function () use ($item, $order): void {
+                    $sku = \Illuminate\Support\Facades\DB::table('product_skus')
+                        ->where('id', $item->product_sku_id)
+                        ->lockForUpdate()
+                        ->first();
+
+                    if ($sku === null) {
+                        throw new \RuntimeException("Không tìm thấy SKU #{$item->product_sku_id} để trừ kho dòng mới của đơn {$order->code}.");
+                    }
+
+                    if ((int) $sku->stock < (int) $item->quantity) {
+                        throw new \RuntimeException("SKU {$sku->sku} không đủ tồn kho để thêm dòng cho đơn {$order->code}.");
+                    }
+
+                    if ((int) $item->quantity > 0) {
+                        \Illuminate\Support\Facades\DB::table('product_skus')
+                            ->where('id', $sku->id)
+                            ->update([
+                                'stock' => (int) $sku->stock - (int) $item->quantity,
+                                'updated_at' => now(),
+                            ]);
+                    }
+                });
+            } catch (\Throwable $e) {
+                report($e);
+            }
+        });
+
+        // Nếu số lượng/SKU thay đổi sau khi đã trừ kho, không tự động điều chỉnh ở đây để tránh race
+        // (việc chỉnh tồn nên thực hiện qua InventoryService chuyên biệt khi cần).
+    }
+
     public function order(): BelongsTo
     {
         return $this->belongsTo(Orders::class);
