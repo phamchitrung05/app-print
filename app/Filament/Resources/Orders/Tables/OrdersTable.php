@@ -35,7 +35,7 @@ class OrdersTable
             ->modifyQueryUsing(
                 fn (Builder $query): Builder => $query
                     ->with(['customer', 'items'])
-                    ->orderByRaw("CASE WHEN status = 'completed' THEN 1 ELSE 0 END")
+                    ->orderByRaw("CASE WHEN status = 'cancelled' THEN 2 WHEN status = 'completed' THEN 1 ELSE 0 END")
                     ->orderByDesc('ordered_at')
             )
             ->columns([
